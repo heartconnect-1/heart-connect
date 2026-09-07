@@ -1,0 +1,18 @@
+{
+  "methods": [
+    "google",
+    "apple",
+    "x"
+  ],
+  "headline": "Welcome to Heart Connect",
+  "subtitle": "Relationships, with intention.",
+  "style": {
+    "mode": "light",
+    "accentColor": "#E84A6A",
+    "backgroundColor": "#FFF9FA",
+    "panelColor": "#FFFFFF",
+    "textColor": "#252525",
+    "fontFamily": "Inter, system-ui, sans-serif",
+    "borderRadius": 18
+  }
+}
