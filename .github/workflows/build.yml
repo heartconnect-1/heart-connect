@@ -18,5 +18,10 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Add AppDeploy CI shim
+        run: |
+          mkdir -p node_modules/@appdeploy/client
+          printf '%s\n' '{"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js"}' > node_modules/@appdeploy/client/package.json
+          printf '%s\n' 'export const auth = {};' 'export const api = {};' 'export const ws = {};' > node_modules/@appdeploy/client/index.js
       - name: Build
         run: npm run build
