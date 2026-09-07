@@ -1,0 +1,79 @@
+# Tests
+
+## Test 1 - Personalization controls, recommendation explanations, reset and AI Matchmaker [sanity]
+Viewport: mobile (375x667)
+Covers: GET/POST /api/stage8/personalization, POST /api/stage8/personalization/reset, GET /api/stage8/recommendations, POST /api/stage8/recommendations/:id/feedback, POST /api/stage8/ai/matchmaker, GET /api/location/status, GET /api/location/me, GET /api/location/search, POST /api/location/manual, POST /api/location/profile, centralized Stage 8 intelligence eligibility, permanent LocationProvider fallback/migration, Stage 4 optional-learning reset integration, mobile Launch Center, Stage 1-7 discovery regression
+Description: Verifies Stage 8 makes recommendation learning transparent and user-controlled while AI Matchmaker remains an eligibility-safe assistant rather than an autonomous matcher.
+Setup:
+1. Actor A is an adult Heart Connect member with a completed profile and eligible real profiles in discovery.
+2. At least one candidate shares Actor A's explicit relationship intention or interests.
+Steps:
+1. Actor A opens Launch Center > Intelligence, turns Personalized Recommendations off, chooses a recommendation priority and refreshes; verify recommendations still use explicit preferences/compatibility and show Why you're seeing this.
+2. Turn personalization on, submit More like this and Less like this feedback, and verify feedback is private and persists without becoming public profile data.
+3. Choose Reset My Recommendations and confirm; verify optional Stage 8 feedback is cleared/ignored and Stage 4 optional activity learning is ignored before the reset timestamp, while safety/moderation records remain unchanged.
+4. Open AI Matchmaker and ask for serious connections near Nairobi who want children; verify the request is translated only into approved filters and the shortlist contains at most five profiles that still satisfy adult, blocking, privacy, visibility and discovery eligibility.
+5. Open Location Center and verify the existing city/country appears as a legacy fallback without data loss. Because MAPBOX_ACCESS_TOKEN is not required for safe fallback operation, verify provider status truthfully shows either Mapbox configured or Permanent manual fallback active. Save a manual city/county/country selection and refresh; verify the normalized location persists and legacy profile city/country update without exposing coordinates.\n6. If provider search is configured, type at least three characters and verify search is debounced/rate-limited and returns only provider-supported places; if unconfigured, verify the UI does not fabricate suggestions and manual entry remains available.\n7. Verify shortlist copy says AI-assisted recommendation and never says soulmate, perfect match or guaranteed compatibility; no connection is sent automatically.
+Expected: Recommendation learning is visible, reversible and optional; reset does not delete safety records; AI Matchmaker cannot bypass discovery eligibility or auto-connect; and existing Discover/Explore remain functional.
+
+## Test 2 - Conversation Coach, Date Planner, international tools, scam/link safety and low-bandwidth drafts
+Viewport: mobile (375x667)
+Covers: POST /api/stage8/ai/coach, POST /api/stage8/ai/date-plan, POST /api/stage8/profile/:id/translate, GET /api/stage8/call-planner/:id, POST /api/stage8/link/check, Stage 3 scam-message protection extension, local chat draft preservation, realtime reconnect, call reconnect/failure UX, PWA offline shell
+Description: Verifies Stage 8 improves communication and international planning without auto-sending, inventing venues or weakening safety.
+Setup:
+1. Actor A and Actor B are adult mutual connections in different supported countries.
+Steps:
+1. Actor A uses Conversation Coach for Warm, Playful, Direct, Thoughtful, Short and Flirty but respectful suggestions; verify each result is review-only and nothing is sent automatically.
+2. Attempt a coercive/consent-bypassing coaching request and verify it is refused.
+3. Use AI Date Planner with a city that has no approved venue; verify it suggests general date categories/manual venue entry and does not invent a business. If an approved Verified Partner venue exists, verify only that real venue may be referenced.
+4. Translate an eligible profile and verify original bio/prompt remain present alongside a machine-translation label; compare call times across both members' configured time zones and verify no call is auto-booked.
+5. Enter a chat draft, simulate closing/reopening the chat and verify the unsent draft is restored locally; simulate a realtime disconnect and verify Heart Connect reconnects/resubscribes without losing the draft.
+6. Enter a message requesting a bank transfer/customs fee/fake medical or travel emergency and verify the existing safety warning/hold/block flow activates; review an external link and verify its destination domain is shown without claiming a reputation check that does not exist.
+7. Load the PWA shell offline and verify a clear offline banner appears and no failed server write is presented as successful.
+Expected: AI remains advisory, date venues are not fabricated, international translation/time-zone tools preserve user control, scam patterns are stronger, drafts survive ordinary interruptions, realtime can reconnect, and offline/low-bandwidth behavior remains honest.
+
+## Test 3 - Notification Center 2.0, quiet hours, private screen and Trust Center 3.0
+Viewport: desktop (1280x800)
+Covers: GET /api/stage8/notifications, POST /api/stage8/notifications/read, POST /api/stage8/notifications/preferences, GET /api/stage8/trust, notification priority/grouping/digest summary, quiet hours/timezone, discreet preview, Private Screen Mode, Data Saver 2.0, Stage 3 Trust/Safe Date/verification regression
+Description: Verifies Stage 8 centralizes notifications and security controls without confusing paid membership with trust.
+Setup:
+1. Actor A has real connection/message/safety or billing notifications and at least one existing security/session record.
+Steps:
+1. Open Notification Center and verify notifications are categorized across Connections, Messages, Recommendations, Events, Date Plans, Safety, Verification, Payments, Membership, Security, Concierge, Community or System with Critical/Important/Standard/Low priority.
+2. Mark one notification read and then Mark all read; refresh and verify read state persists.
+3. Configure Daily/Weekly/Off digest, quiet hours, timezone and Private notification preview; verify commercial notifications never outrank Safety/Security.
+4. Enable Private Screen Mode and verify sensitive Heart Connect content blurs when the browser loses focus, then restores on focus without deleting data.
+5. Switch Standard/Data Saver/Wi-Fi Preferred and verify the preference persists; text chat remains usable independently of profile video.
+6. Open Trust Center 3.0 and verify the private security checklist separates verification, membership and account security; unsupported MFA/passkeys/session revocation are shown as provider-dependent rather than functional.
+Expected: Notification state and privacy settings persist, safety retains highest priority, private-screen/data controls behave transparently, and Trust Center never presents Premium/VIP as identity verification or public trustworthiness.
+
+## Test 4 - Soft market launch, waitlist/invite, public trust/pricing and Stage 7 commerce regression
+Viewport: desktop (1280x800)
+Covers: GET /api/stage8/market, POST /api/stage8/market/waitlist, POST /api/stage8/market/invite/validate, GET /api/stage8/public, GET/POST /api/stage8/admin/markets, POST /api/stage8/admin/invites, public Trust & Safety/How It Works/Compatibility/Pricing experience, Stage 7 regional pricing/provider/payment/gift/event/partner/concierge regression
+Description: Verifies market rollout and public launch information are backend-configurable and honest.
+Setup:
+1. Actor Admin is on the existing admin allowlist.
+2. One supported market has a real Stage 7 regional price; another has no configured public price.
+Steps:
+1. Admin sets a market to Coming Soon, Invite Only, Beta, Live and Paused in turn, with registration/discovery/payment/event/Concierge/partner toggles; verify the state changes without a code deployment. Disable discovery and verify the existing Stage 4 Discover/Explore surfaces return no new profiles for that market; disable first-time registration and verify a new member cannot complete their first profile until the market permits it or a valid invite grants access.
+2. For a non-live market, Actor A joins the country waitlist with consent and verifies no launch date is promised.
+3. Admin creates a market-scoped invite with expiry/usage limit; Actor A validates it once and an invalid/expired/wrong-market code is rejected.
+4. While signed out, open the public Stage 8 Trust & Safety, How It Works, Compatibility and Pricing section; verify compatibility says guidance not guarantee and only backend-configured regional prices appear, with no fake countdowns/scarcity/testimonials.
+5. Regression-check Stage 7 Membership/Promo/Referral/Gift, Concierge, Verified Partner venues and Event ticket boundaries; verify payment success still requires authenticated backend confirmation.
+Expected: Market rollout is configurable and truthful, waitlist/invite controls are backend validated, public launch pages do not fabricate prices or claims, and Stage 7 commerce/partner/Concierge safeguards remain authoritative.
+
+## Test 5 - Operations, analytics, privacy export, responsive/accessibility and Stage 1-7 regression
+Viewport: desktop (1280x800)
+Covers: GET /api/stage8/admin/service-health, GET /api/stage8/admin/payments, GET /api/stage8/admin/safety, GET /api/stage8/admin/executive, POST /api/stage8/telemetry, GET /api/stage8/search, POST /api/stage8/billing/cancel, GET /api/account/export Stage 8 override, POST /api/location/reverse, GET /api/location/distance/:profileId, GET /api/location/clusters, GET /api/location/recent, server-side approximate distance, privacy-fuzzed real-data clusters, location provider failure fallback, service-health/payment/M-Pesa visibility, sampled executive analytics, privacy-safe search, cancellation, accessibility/reduced motion, full Stage 1-7 regression
+Description: Verifies Stage 8 launch operations use real bounded data and remain least-privilege, privacy-safe and resilient.
+Setup:
+1. Actor Admin, Actor Payment Specialist and Actor Safety Specialist have their existing authorized roles.
+2. Actor A is an ordinary adult member with a paid subscription record or a seeded active test subscription for cancellation testing.
+Steps:
+1. Ordinary Actor A attempts restricted Service Health, Payment Operations, Safety Operations and Executive Dashboard endpoints and is denied; authorized roles see only their permitted aggregate/operational views.
+2. Payment Specialist reviews pending/failed/refunded/reconciliation-required records and M-Pesa configuration status; verify there is no manual unlock that bypasses provider confirmation/audit.
+3. Admin reviews Executive Dashboard and verifies metrics are labeled bounded/sampled, revenue is separated by currency minor units, configured markets only are compared, and unavailable global metrics are explicitly not fabricated.
+4. Search Heart Connect for a message, existing connection, event, support ticket or verified venue and verify unrestricted profile search is not available.
+5. Actor A cancels renewal with an optional reason and sees the backend end-of-access date; verify cancellation remains straightforward.
+6. Download My Data and verify eligible Stage 8 personalization, notification preferences, recommendation feedback and waitlist data are included while fraud scores, internal observability/audit records, staff notes and other users' private data are excluded.
+7. From Location Center, click Use My Current Location and verify browser permission is requested only after the click; when permission is denied, manual location remains usable. When granted with a configured provider, verify reverse geocoding returns only a safe city/region/country selection before saving.\n8. For two eligible normalized profiles, request approximate distance and verify only a rounded km/miles label is returned; disable the target's distance visibility or block the target and verify distance is hidden/unavailable. Open discovery areas and verify counts come only from eligible recommendation profiles and any coordinates are rounded to area-level clusters rather than precise member pins.\n9. Regression-check authentication, onboarding, profiles, Discover/Explore/Connections, messaging/calls, AI, translation, verification, Safe Date, trusted contacts, payments/subscriptions/boosts, Travel, Communities, Events, Date Planner, Relationship Mode, Concierge, Partners, Support and Admin; verify mobile/desktop navigation, keyboard focus, dialogs, error states and reduced-motion behavior remain usable.
+Expected: Operations are least-privilege and honest about observability limits, payment state remains backend-authoritative, analytics are privacy-safe and non-fabricated, cancellation/export work clearly, and Stages 1–7 remain intact.
