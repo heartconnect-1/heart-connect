@@ -1,0 +1,10 @@
+revoke all privileges on table public.dating_profiles, public.profile_media, public.discovery_preferences, public.swipe_actions, public.matches, public.messages, public.blocks, public.reports, public.verification_requests from anon, authenticated;
+grant select, insert, update on public.dating_profiles to authenticated;
+grant select, insert, update, delete on public.profile_media to authenticated;
+grant select, insert, update on public.discovery_preferences to authenticated;
+grant select, insert, update on public.swipe_actions to authenticated;
+grant select on public.matches to authenticated;
+grant select, insert, update on public.messages to authenticated;
+grant select, insert, delete on public.blocks to authenticated;
+grant select, insert on public.reports to authenticated;
+grant select, insert on public.verification_requests to authenticated;
