@@ -47,14 +47,14 @@ Expected: Security controls are truthful, role boundaries remain least-privilege
 
 ## Test 5 - Authentication, Legal & Safety Center, public contact routing and responsive accessibility
 Viewport: desktop (1280x800)
-Covers: existing profiles/discovery/messages/calls/safety/verification/location/Stage 1-8 regression after auth-shell upgrade, responsive auth forms, keyboard-focusable controls, public Legal & Safety Center with 42 policies, compact legal footer, public department contact directory, POST /api/contact Resend routing
+Covers: existing profiles/discovery/messages/calls/safety/verification/location/Stage 1-8 regression after auth-shell upgrade, responsive auth forms, keyboard-focusable controls, iubenda cookie consent and preferences, public Legal & Safety Center with 42 policies, compact legal footer, public department contact directory, POST /api/contact Resend routing
 Description: Verifies the authentication upgrade does not break the existing Heart Connect member application, while the public legal, contact and authentication experience remain usable on desktop and mobile.
 Setup:
 1. Actor A is an authenticated adult member with a completed profile and at least one mutual connection.
 Steps:
 1. Regression-check profile load, Discover/Explore, mutual connections, messaging, reporting, verification center, Location Center and existing Launch Center surfaces after sign-in.
-2. Sign out and verify Welcome, Create Account, Sign In, Forgot Password, Terms and Privacy summaries render without member data.
-3. Resize to mobile and keyboard-navigate registration/sign-in controls; verify fields, password visibility control, provider buttons and validation messages remain usable.
+2. Sign out and verify Welcome, Create Account, Sign In, Forgot Password, Terms and Privacy summaries render without member data; verify iubenda cookie consent/preferences are available and non-essential consent is not inferred merely from continued browsing.
+3. Resize to mobile and keyboard-navigate registration/sign-in controls; verify fields, password visibility control, provider buttons, cookie preferences and validation messages remain usable.
 4. From the footer open the Legal & Safety Center, verify all 42 policies are searchable and category-filterable, open Romance Scam & Financial Fraud, AI & Automated Decision-Making and Child Safety / Minor Protection, then return to Welcome.
 5. Scroll to Contact, verify the department directory includes info, support, admin, finance, marketing, careers, security, privacy, legal, safety and noreply addresses, then send a valid General enquiries message with subject "Heart Connect QA contact" and a complete message.
 Expected: Existing member functionality remains available after authentication, private member data is absent from signed-out screens, auth surfaces remain responsive and keyboard-accessible, the Legal & Safety Center exposes the full 42-policy architecture without overwhelming the footer, and the contact form reports a successful routed message with a reference instead of falsely claiming delivery.
