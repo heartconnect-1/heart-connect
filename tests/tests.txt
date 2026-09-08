@@ -1,60 +1,66 @@
 # Tests
 
-## Test 1 - Adults-only registration, password policy and provider honesty [sanity]
+## Test 1 - Versioned legal acceptance and optional consent controls [sanity]
 Viewport: mobile (375x667)
-Covers: public Welcome/Create Account experience, POST /api/auth/register/preflight, 18+ enforcement, password-strength and password-match validation, Terms/Privacy acceptance, registration rate limiting, Supabase-ready provider status
-Description: Verifies Heart Connect blocks underage registration, validates security requirements before any account request, and never pretends a Supabase account was created when the provider is not connected.
+Covers: GET /api/compliance/state, POST /api/compliance/accept, POST /api/compliance/consents, required Terms/Privacy/Community Guidelines gate, append-only consent history, Supabase compliance bridge
+Description: Verifies members cannot enter the dating product without recording the current required policy versions and that optional marketing/privacy choices remain separate and reversible.
+Setup:
+1. Actor A is an authenticated adult Heart Connect member who has not accepted the current 2026-09-08-v1 policy set.
 Steps:
-1. Open Create Account, enter a date of birth that makes the member 17, complete the other required fields and submit.
-2. Verify registration is blocked with an 18+ message; then use an adult date of birth but a weak or mismatched password and verify submission remains blocked.
-3. Use an adult date of birth, matching strong password, phone, email, country, city, relationship intention and all required acceptances, then submit.
-Expected: Under-18 and insecure submissions are rejected; an otherwise valid submission either continues to a real provider when configured or clearly states that Supabase is not connected, with no fake account or verification success.
+1. Sign in as Actor A and verify member discovery is replaced by the current-policy gate with separate Terms, Privacy and Community Guidelines checkboxes and a Sign out option.
+2. Accept all three required documents and continue; reopen Legal & Safety and verify the exact current versions appear as accepted.
+3. Turn Marketing email on, leave Marketing SMS and Marketing push off, change Optional analytics on, save, refresh, then turn Marketing email off again.
+4. Open consent history and verify both the grant and withdrawal are retained as separate history entries rather than overwriting the past event.
+Expected: Required policy versions are recorded before normal member access, optional marketing is not preselected or bundled, current preferences persist, and consent changes retain a versioned history suitable for Supabase synchronization.
 
-## Test 2 - Sign-in, recovery, OTP and rate-limit failure paths
+## Test 2 - Individual message/media reports and safety escalation
 Viewport: desktop (1280x800)
-Covers: Sign In, Forgot Password, Account Recovery and Phone OTP UI; POST /api/auth/login/preflight, POST /api/auth/recovery/request, POST /api/auth/email/resend, POST /api/auth/phone/otp/request, POST /api/auth/phone/otp/verify; generic account-existence privacy; auth rate limiting; Google/Apple fallback
-Description: Verifies credential and recovery surfaces do not leak whether an account exists and provider-dependent delivery remains truthful.
+Covers: POST /api/report/:id for profile/message/media targets, confidential evidence reference, moderation queue creation, critical-priority child-safety escalation and evidence preservation
+Description: Verifies message, photo and video reports preserve the exact target and that child-safety concerns enter urgent human review without automatic legal conclusions.
+Setup:
+1. Actor A and Actor B are adult mutual matches with at least one message from Actor B; Actor B has a visible profile photo and video.
 Steps:
-1. Open Sign In and try email/password, then switch to phone sign-in and request an OTP.
-2. Open Forgot Password and submit an arbitrary email or phone; verify the UI never confirms whether that identifier exists.
-3. Open the OTP screen, enter an invalid 6-digit code and retry/resend within normal limits; verify provider-not-configured states do not claim an SMS was sent.
-4. Use the Google or Apple secure sign-in fallback and verify the existing provider popup remains available.
-Expected: Auth errors are visible, account existence remains private, rate limiting protects repeated requests, and no email or SMS is falsely reported as delivered.
+1. Actor A reports one specific message from Actor B for Scam/fraud and verifies the confirmation says the report was confidentially queued.
+2. Actor A opens Actor B's profile and separately reports the visible photo and video; verify each action targets that media rather than silently converting to a whole-profile report.
+3. Submit an Underage concern report and then, as an authorized safety reviewer, open the admin compliance queue.
+4. Verify the underage report is Critical, has a child-safety case in urgent review, preserves evidence for a bounded period, and does not claim that Heart Connect automatically contacted an authority or proved the allegation.
+Expected: Reports retain the correct target/evidence reference, enter the moderation queue, and child-safety concerns receive urgent human escalation without exposing the reporter or automating a legal conclusion.
 
-## Test 3 - Protected member access, onboarding guard and logout confirmation
+## Test 3 - Suspension, restricted interactions, human appeal and overturn
+Viewport: desktop (1280x800)
+Covers: POST /api/admin/moderation, GET /api/enforcements, POST /api/appeals, POST /api/compliance/admin/appeals/:id/review, interaction restriction, audit trail and member notification
+Description: Verifies moderation restrictions are enforced in dating interactions while preserving member access to notices, appeals and human review.
+Setup:
+1. Actor Moderator is an authorized moderation staff member; Actor A is an ordinary adult member with a completed profile and a mutual match.
+Steps:
+1. Actor Moderator applies a temporary suspension to Actor A with a clear reason.
+2. Actor A signs in and verifies discovery/connection interactions are restricted while Legal & Safety remains available and shows the enforcement reason plus an Appeal option.
+3. Actor A submits an appeal of at least 10 characters and verifies duplicate open appeals for the same enforcement are rejected.
+4. Actor Moderator or another authorized reviewer opens the appeals queue, overturns the action with a resolution, and Actor A refreshes.
+Expected: Suspensions are enforceable rather than cosmetic, appeal access remains available, the reviewer decision is recorded, an overturned suspension is lifted, and no reporter identity is disclosed.
+
+## Test 4 - Privacy, incognito and photo visibility persist and affect discovery
 Viewport: mobile (375x667)
-Covers: authenticated session restore, anonymous member-area denial by UI boundary, existing requireAuth backend protection, onboarding-before-discovery guard, current-device logout confirmation
-Description: Verifies logged-out visitors remain in public auth/legal surfaces while authenticated members retain the existing profile-completion gate before discovery.
+Covers: GET/POST /api/privacy, profileVisibility standard/incognito/paused, photoVisibility everyone/matches/private, existing visibility toggles and discovery enforcement
+Description: Verifies privacy choices change actual discovery and media exposure rather than only changing local UI state.
 Setup:
-1. Actor A is a valid adult Heart Connect member authenticated through the current secure provider.
+1. Actor A and Actor B are adult members; they are not initially matched.
 Steps:
-1. While signed out, verify Discover, Explore, Matches, Messages, Profile, Safe Date, Verification and Membership member surfaces are not exposed through the member navigation.
-2. Sign in as Actor A with no completed dating profile and verify Heart Connect directs the member to complete profile/onboarding before discovery.
-3. Open Account Security, choose Log out of this device, cancel the confirmation once, then confirm it.
-Expected: Public/member boundaries hold, incomplete members do not enter discovery, cancelling logout keeps the session, and confirmed logout returns to the public authentication experience.
+1. Actor A opens Privacy, sets Profile visibility to Incognito and Photo visibility to Mutual matches only, saves and refreshes.
+2. As Actor B, verify Actor A is not discoverable until Actor A has liked Actor B; after that eligibility is met, verify Actor A can appear but media remains hidden until a mutual match exists.
+3. After a mutual match, verify permitted media appears; Actor A then changes Photo visibility to Private and verify media is hidden again.
+4. Actor A changes Profile visibility to Paused and verifies the profile leaves new discovery while existing account/legal controls remain accessible.
+Expected: Privacy choices persist and materially control discovery/media exposure; incognito and paused modes are not decorative UI switches.
 
-## Test 4 - Security center, role boundary and provider-dependent session controls
+## Test 5 - Portable data export, moderation operations and existing safety regression
 Viewport: desktop (1280x800)
-Covers: GET /api/auth/security, POST /api/auth/security/logout-all, change-password/update-email/update-phone/MFA provider gates, active-session display, suspicious-login alert surface, User/Support Agent/Moderator/Admin/Super Admin role representation, existing admin access restrictions
-Description: Verifies private account security state is visible without overstating unsupported session revocation or MFA capability.
+Covers: POST /api/compliance/export-request, GET /api/account/export, export completion record, compliance data in portable export, moderation/appeal/child-safety queue role boundaries, existing blocking/reporting/Safe Date/legal/cookie regression
+Description: Verifies users can export their own compliance history while restricted safety/moderation data stays protected and existing safety features continue to work.
 Setup:
-1. Actor A is an ordinary authenticated member; Actor Admin is an authorized existing Heart Connect administrator.
+1. Actor A has accepted policies, changed at least one optional consent, and has a completed profile; Actor Admin is authorized for compliance operations.
 Steps:
-1. Actor A opens Account Security and verifies current device/browser, approximate location when available, last active and current-session status are shown privately.
-2. Actor A attempts Logout all devices, Change password, Update email/phone and MFA setup while Supabase is not connected; verify each action explains the provider dependency and does not claim success.
-3. Actor A attempts an existing admin-only operation and is denied; Actor Admin accesses the same authorized admin operation successfully.
-Expected: Security controls are truthful, role boundaries remain least-privilege, and unsupported cross-device revocation or MFA cannot be presented as completed.
-
-## Test 5 - Authentication, Legal & Safety Center, public contact routing and responsive accessibility
-Viewport: desktop (1280x800)
-Covers: existing profiles/discovery/messages/calls/safety/verification/location/Stage 1-8 regression after auth-shell upgrade, responsive auth forms, keyboard-focusable controls, iubenda cookie consent and preferences, public Legal & Safety Center with 42 policies, compact legal footer, public department contact directory, POST /api/contact Resend routing
-Description: Verifies the authentication upgrade does not break the existing Heart Connect member application, while the public legal, contact and authentication experience remain usable on desktop and mobile.
-Setup:
-1. Actor A is an authenticated adult member with a completed profile and at least one mutual connection.
-Steps:
-1. Regression-check profile load, Discover/Explore, mutual connections, messaging, reporting, verification center, Location Center and existing Launch Center surfaces after sign-in.
-2. Sign out and verify Welcome, Create Account, Sign In, Forgot Password, Terms and Privacy summaries render without member data; verify iubenda cookie consent/preferences are available and non-essential consent is not inferred merely from continued browsing.
-3. Resize to mobile and keyboard-navigate registration/sign-in controls; verify fields, password visibility control, provider buttons, cookie preferences and validation messages remain usable.
-4. From the footer open the Legal & Safety Center, verify all 42 policies are searchable and category-filterable, open Romance Scam & Financial Fraud, AI & Automated Decision-Making and Child Safety / Minor Protection, then return to Welcome.
-5. Scroll to Contact, verify the department directory includes info, support, admin, finance, marketing, careers, security, privacy, legal, safety and noreply addresses, then send a valid General enquiries message with subject "Heart Connect QA contact" and a complete message.
-Expected: Existing member functionality remains available after authentication, private member data is absent from signed-out screens, auth surfaces remain responsive and keyboard-accessible, the Legal & Safety Center exposes the full 42-policy architecture without overwhelming the footer, and the contact form reports a successful routed message with a reference instead of falsely claiming delivery.
+1. Actor A chooses Download my data and verifies a JSON file is produced containing the normal Heart Connect export plus legal versions, acceptance history, consent preferences/history, Actor A's enforcement/appeal notices and export-request history.
+2. Refresh and verify the export request is recorded as completed; confidential fraud models, other users' private data, staff notes and moderation evidence are not included.
+3. As an ordinary member, attempt admin compliance-queue access and verify it is denied; as Actor Admin, open the moderation, appeal and child-safety queues successfully.
+4. Regression-check profile blocking, normal profile reporting, Safe Date, account deletion, iubenda cookie preferences and the public 42-policy Legal & Safety Center.
+Expected: User-owned compliance data is portable, confidential moderation/security data remains excluded, compliance operations are least-privilege, and existing safety/legal workflows remain functional.
