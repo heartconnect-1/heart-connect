@@ -3,5 +3,6 @@ Allow: /
 Disallow: /app
 Disallow: /login
 Disallow: /signup
+Disallow: /api/
 
 Sitemap: https://royal-heart.com/sitemap.xml
