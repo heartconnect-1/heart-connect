@@ -64,3 +64,29 @@ Steps:
 3. As an ordinary member, attempt admin compliance-queue access and verify it is denied; as Actor Admin, open the moderation, appeal and child-safety queues successfully.
 4. Regression-check profile blocking, normal profile reporting, Safe Date, account deletion, iubenda cookie preferences and the public 42-policy Legal & Safety Center.
 Expected: User-owned compliance data is portable, confidential moderation/security data remains excluded, compliance operations are least-privilege, and existing safety/legal workflows remain functional.
+
+## Test 6 - Email reconfirmation uses short-lived hashed codes
+Viewport: desktop (1280x800)
+Covers: POST /api/auth/security/email-code/request, POST /api/auth/security/email-code/verify, Resend delivery, code hashing, expiry, attempt limits, profile verification signal
+Description: Verifies Heart Connect can reconfirm access to the signed-in provider email without storing the plain verification code or falsely accepting expired/incorrect codes.
+Setup:
+1. Actor A is signed in through the primary AppDeploy identity provider and has an email address; RESEND_API_KEY is configured.
+Steps:
+1. Open Account Security and request an email verification code; verify the UI displays only a masked email and a 10-minute validity message.
+2. Enter an incorrect six-digit code repeatedly and verify attempts are rejected and bounded.
+3. Request a new code and verify the previous challenge is replaced; enter the current correct code before expiry.
+4. Refresh Account Security and the member profile and verify the email channel shows verified without exposing the code or private challenge data.
+Expected: Resend sends from noreply@royal-heart.com, plain codes are never stored in application data, incorrect/expired codes fail, successful verification persists, and rate limits prevent rapid abuse.
+
+## Test 7 - Phone verification fails closed until Twilio Verify is configured
+Viewport: mobile (375x667)
+Covers: POST /api/auth/security/phone-code/request, POST /api/auth/security/phone-code/verify, E.164 validation, Twilio Verify provider gating, private phone handling
+Description: Verifies Heart Connect never pretends an SMS was sent when Twilio Verify is unavailable and stores only a hash plus last four digits after successful verification.
+Setup:
+1. Actor A is signed in. First run with one or more Twilio secrets absent; second run with TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_VERIFY_SERVICE_SID configured.
+Steps:
+1. With Twilio disabled, enter +2547XXXXXXXX and request a code; verify the UI states phone verification is unavailable and no success state is shown.
+2. With Twilio enabled, try a local-format or malformed number and verify it is rejected; then submit a valid E.164 number and receive a real Verify SMS.
+3. Enter an incorrect/expired code and verify it is rejected and attempt limited; enter a current valid code and verify success.
+4. Refresh Account Security and verify only the last four digits are displayed and the profile receives a phone-verification signal; the full number is not exposed as a public profile field.
+Expected: Phone verification fails closed without provider credentials, uses Twilio Verify only when configured, validates international format, rate-limits abuse, and persists only a hash plus last four digits after approval.
