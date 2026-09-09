@@ -1,0 +1,1 @@
+Temporary marker for the v5 global booking location rollout. This branch updates the Worker only; remove before merge if needed.
