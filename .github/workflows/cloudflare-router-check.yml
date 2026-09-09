@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'cloudflare/**'
-      - 'wrangler.router.jsonc'
+      - 'wrangler.jsonc'
       - '.github/workflows/cloudflare-router-check.yml'
   workflow_dispatch:
 
@@ -19,4 +19,4 @@ jobs:
       - name: Check Worker syntax
         run: node --check cloudflare/worker.js
       - name: Validate Wrangler bundle
-        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.router.jsonc --outdir .wrangler-dry-run
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.jsonc --outdir .wrangler-dry-run
