@@ -1,0 +1,12 @@
+import previousWorker from './worker-v9.js';
+
+const EDGE_VERSION='cloudflare-router-v10';
+const GEO_PATHS=new Set(['/_hc/regions','/_hc/cities','/_hc/areas']);
+const HELPER_PATHS=new Set(['/_hc/countries.js','/_hc/booking-dashboard.js']);
+const inflight=new Map();
+
+function edgeResponse(response,extraHeaders={}){const headers=new Headers(response.headers);headers.set('x-heart-connect-edge',EDGE_VERSION);for(const [k,v] of Object.entries(extraHeaders))headers.set(k,v);return new Response(response.body,{status:response.status,statusText:response.statusText,headers})}
+
+async function stableGeo(request,env,ctx){const cache=caches.default,key=new Request(request.url,{method:'GET'}),hit=await cache.match(key);if(hit)return edgeResponse(hit,{'x-heart-connect-cache':'hit'});const url=request.url;let pending=inflight.get(url);if(!pending){pending=(async()=>{let response=await previousWorker.fetch(request,env,ctx);const headers=new Headers(response.headers);headers.set('cache-control','public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');response=new Response(response.body,{status:response.status,statusText:response.statusText,headers});if(response.ok){const copy=response.clone();if(ctx?.waitUntil)ctx.waitUntil(cache.put(key,copy));else await cache.put(key,copy)}return response})().finally(()=>inflight.delete(url));inflight.set(url,pending)}const response=await pending;return edgeResponse(response.clone(),{'x-heart-connect-cache':'miss'})}
+
+export default {async fetch(request,env,ctx){const incoming=new URL(request.url);if(request.method==='GET'&&GEO_PATHS.has(incoming.pathname))return stableGeo(request,env,ctx);let response=await previousWorker.fetch(request,env,ctx);if(request.method==='GET'&&HELPER_PATHS.has(incoming.pathname)){const headers=new Headers(response.headers);headers.set('cache-control','public, max-age=86400, stale-while-revalidate=604800');response=new Response(response.body,{status:response.status,statusText:response.statusText,headers})}const accept=request.headers.get('accept')||'';if((request.method==='GET'||request.method==='HEAD')&&accept.includes('text/html')){const headers=new Headers(response.headers);const existing=headers.get('link');const preconnect='<https://api-v2.appdeploy.ai>; rel=preconnect; crossorigin';headers.set('link',existing?existing+', '+preconnect:preconnect);response=new Response(response.body,{status:response.status,statusText:response.statusText,headers})}return edgeResponse(response)}};
