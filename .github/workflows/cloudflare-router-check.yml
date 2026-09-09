@@ -1,0 +1,22 @@
+name: Cloudflare Router Verification
+
+on:
+  pull_request:
+    paths:
+      - 'cloudflare/**'
+      - 'wrangler.router.jsonc'
+      - '.github/workflows/cloudflare-router-check.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check Worker syntax
+        run: node --check cloudflare/worker.js
+      - name: Validate Wrangler bundle
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.router.jsonc --outdir .wrangler-dry-run
