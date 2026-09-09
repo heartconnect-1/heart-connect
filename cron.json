@@ -1,0 +1,1 @@
+[{"name":"cms-scheduled-publishing","cron":"*/5 * * * *","handler":"cmsPublishScheduler","timezone":"UTC","payload":{}}]
