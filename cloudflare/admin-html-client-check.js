@@ -1,10 +1,22 @@
+import vm from 'node:vm';
 import {adminHtml} from './admin-ui-v13.js';
 
 const html=adminHtml('hc-admin-control-plane-v13-test');
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
 if(!scripts.length)throw new Error('No inline admin scripts found.');
 for(const [i,script] of scripts.entries()){
-  try{new Function(script)}catch(error){throw new Error(`Admin inline script ${i+1} failed to compile: ${error.message}`)}
+  try{
+    new vm.Script(script,{filename:`admin-inline-${i+1}.js`});
+  }catch(error){
+    console.error(`Admin inline script ${i+1} failed to compile.`);
+    console.error(error.stack||error.message);
+    const m=String(error.stack||'').match(/admin-inline-\d+\.js:(\d+)/);
+    if(m){
+      const line=Number(m[1]),rows=script.split('\n'),from=Math.max(0,line-4),to=Math.min(rows.length,line+3);
+      for(let n=from;n<to;n++)console.error(`${String(n+1).padStart(4,' ')} | ${rows[n]}`);
+    }
+    process.exit(1);
+  }
 }
 for(const marker of ['Media & HTML sections','hc13PageImage','hc13PageVideo','Post media uploads','hc13CmsImage','hc13CmsVideo']){
   if(!html.includes(marker))throw new Error(`Missing v13 admin marker: ${marker}`);
