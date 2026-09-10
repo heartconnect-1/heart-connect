@@ -1,7 +1,7 @@
 import vm from 'node:vm';
-import {adminHtml} from './admin-ui-v19.js';
+import {adminHtml} from './admin-ui-v20.js';
 
-const html=adminHtml('hc-admin-control-plane-v19-test');
+const html=adminHtml('hc-admin-control-plane-v20-test');
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
 if(!scripts.length)throw new Error('No inline admin scripts found.');
 for(const [i,script] of scripts.entries()){
@@ -18,9 +18,9 @@ for(const [i,script] of scripts.entries()){
     process.exit(1);
   }
 }
-for(const marker of ['Media & HTML sections','Post media uploads','+ Add User','Profile editor','Discover visibility','Upload profile photo','AI admin assistant','Back to Users','Location & discovery','Save location','✦ AI Help','Heart Connect Admin AI','Profile photos','hc19AddPhotos','Select country / region','Choose country first','/api/admin/locations/countries','/api/admin/locations/cities','Admin-assisted onboarding profile photo']){
+for(const marker of ['Media & HTML sections','Post media uploads','+ Add User','Profile editor','Discover visibility','Upload profile photo','AI admin assistant','Back to Users','Location & discovery','Save location','✦ AI Help','Heart Connect Admin AI','Profile photos','hc19AddPhotos','Select country / region','Choose country first','Mapbox place picker','Search Mapbox','hc16AddGender','hc16Gender','Select gender','/api/admin/mapbox/config','Exact coordinates are not saved']){
   if(!html.includes(marker))throw new Error(`Missing current Admin marker: ${marker}`);
 }
 if(html.includes("const TYPES=['home','legal','help','landing','content'];"))throw new Error('Broken v11 browser override was not removed.');
 if(html.includes('function esc13'))throw new Error('Broken v13 browser bridge was not removed.');
-console.log(`Compiled ${scripts.length} admin inline scripts and verified v19 selectable locations and onboarding photo upload.`);
+console.log(`Compiled ${scripts.length} admin inline scripts and verified v20 Mapbox, gender and user onboarding controls.`);
