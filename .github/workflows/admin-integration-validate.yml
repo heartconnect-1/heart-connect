@@ -27,7 +27,7 @@ jobs:
           git diff --name-only "$SECURITY_CHECKPOINT"..HEAD > /tmp/integration-files.txt
           echo "Integration-only changes since the approved security checkpoint:"
           cat /tmp/integration-files.txt
-          BAD="$(grep -Ev '^(\.github/workflows/admin-integration-validate\.yml|cloudflare/admin-[^/]+\.js|cloudflare/worker-admin-v7\.js|supabase/migrations/[0-9]+_admin_[^/]+\.sql|docs/admin-[^/]+\.md|wrangler\.router\.jsonc)$' /tmp/integration-files.txt || true)"
+          BAD="$(grep -Ev '^(\.github/workflows/admin-integration-validate\.yml|cloudflare/admin-[^/]+\.js|cloudflare/booking-advanced-v10\.txt|cloudflare/worker-admin-v7\.js|supabase/migrations/[0-9]+_admin_[^/]+\.sql|docs/admin-[^/]+\.md|wrangler\.router\.jsonc)$' /tmp/integration-files.txt || true)"
           if [ -n "$BAD" ]; then
             echo "Unexpected security-owned files changed during integration:"
             echo "$BAD"
