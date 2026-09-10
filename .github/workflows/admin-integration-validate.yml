@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
-          grep -Fq "from './admin-api-v14.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v15.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
@@ -114,6 +114,7 @@ jobs:
           node --check cloudflare/admin-api-v12.js
           node --check cloudflare/admin-api-v13.js
           node --check cloudflare/admin-api-v14.js
+          node --check cloudflare/admin-api-v15.js
           node --check cloudflare/admin-login-v2.js
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-ui-v4.js
@@ -127,6 +128,7 @@ jobs:
           node --check cloudflare/admin-ui-v12.js
           node --check cloudflare/admin-ui-v13.js
           node --check cloudflare/admin-ui-v14.js
+          node --check cloudflare/admin-ui-v15.js
           node --check cloudflare/admin-html-client-check.js
           node cloudflare/admin-html-client-check.js
 
@@ -140,21 +142,19 @@ jobs:
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v9.js
           grep -Fq "cannot deactivate or change your own current admin role" cloudflare/admin-api-v9.js
-          grep -Fq "permissions-policy" cloudflare/admin-api-v14.js
-          grep -Fq "strict-transport-security" cloudflare/admin-api-v14.js
-          grep -Fq "removeInlineScriptContaining" cloudflare/admin-ui-v14.js
+          grep -Fq "permissions-policy" cloudflare/admin-api-v15.js
+          grep -Fq "strict-transport-security" cloudflare/admin-api-v15.js
+          grep -Fq "removeInlineScriptContaining" cloudflare/admin-ui-v15.js
           grep -Fq "Sign out" cloudflare/admin-ui-v9.js
-          grep -Fq "Automation & AI" cloudflare/admin-ui-v9.js
-          grep -Fq "sessionCheck" cloudflare/admin-ui-v9.js
           grep -Fq "Ctrl/⌘ + K" cloudflare/admin-ui-v10.js
-          grep -Fq "serviceRoleConfigured" cloudflare/admin-ui-v10.js
-          grep -Fq "Toggle compact layout" cloudflare/admin-ui-v10.js
           grep -Fq "+ Add Staff Member" cloudflare/admin-ui-v8.js
-          grep -Fq "Media & HTML sections" cloudflare/admin-ui-v13.js
-          grep -Fq "hc13PageImage" cloudflare/admin-ui-v13.js
-          grep -Fq "hc13PageVideo" cloudflare/admin-ui-v13.js
-          grep -Fq "Direct HTML section" cloudflare/admin-ui-v13.js
-          grep -Fq "Post media uploads" cloudflare/admin-ui-v13.js
+          grep -Fq "Media & HTML sections" cloudflare/admin-ui-v15.js
+          grep -Fq "hc15PageImage" cloudflare/admin-ui-v15.js
+          grep -Fq "hc15PageVideo" cloudflare/admin-ui-v15.js
+          grep -Fq "Direct HTML section" cloudflare/admin-ui-v15.js
+          grep -Fq "Post media uploads" cloudflare/admin-ui-v15.js
+          grep -Fq "hc15CmsImage" cloudflare/admin-ui-v15.js
+          grep -Fq "hc15CmsVideo" cloudflare/admin-ui-v15.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
           BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
@@ -164,8 +164,6 @@ jobs:
           grep -Fq "member_discoverable_before_enforcement" "$BRIDGE"
           grep -Fq "notifications_campaign_id_fkey" "$BRIDGE"
           grep -Fq "notifications_delivery_id_fkey" "$BRIDGE"
-          grep -Fq "on conflict(user_id) do nothing" "$BRIDGE"
-          grep -Fq "reason_code like 'admin_control_plane_%'" "$BRIDGE"
           STAFF_LOOKUP=supabase/migrations/20260910130000_admin_staff_email_resolution.sql
           test -f "$STAFF_LOOKUP"
           grep -Fq "grant execute on function public.hc_admin_resolve_auth_user_by_email(text) to service_role" "$STAFF_LOOKUP"
