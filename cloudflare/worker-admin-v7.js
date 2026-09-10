@@ -1,8 +1,8 @@
 import previousWorker from './worker-v15.js';
-import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v18.js';
+import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v19.js';
 import {handleAdminLogin} from './admin-login-v2.js';
 
-const EDGE_VERSION='cloudflare-admin-router-v18-global-ai-help';
+const EDGE_VERSION='cloudflare-admin-router-v19-selectable-places-photo-onboarding';
 function stamp(response){const h=new Headers(response.headers);h.set('x-heart-connect-admin-router',EDGE_VERSION);h.set('x-heart-connect-admin-version',ADMIN_VERSION);h.set('x-heart-connect-security-core','cloudflare-router-v15');h.set('x-content-type-options','nosniff');h.set('referrer-policy','no-referrer');h.set('permissions-policy','camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=()');h.set('strict-transport-security','max-age=31536000; includeSubDomains');return new Response(response.body,{status:response.status,statusText:response.statusText,headers:h})}
 function hasNativeSessionCookie(request){return /(?:^|;\s*)__Host-hc_cf_access=/.test(String(request.headers.get('cookie')||''))}
 
