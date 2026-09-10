@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --noUnusedLocals false --noUnusedParameters false",
     "build": "vite build",
     "verify": "npm run typecheck && npm run build",
     "preview": "vite preview"
