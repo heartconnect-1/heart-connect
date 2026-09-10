@@ -112,7 +112,7 @@ jobs:
           node --check cloudflare/admin-ui-v6.js
           node --check cloudflare/admin-ui-v7.js
 
-      - name: Validate Admin safety boundaries
+      - name: Validate Admin safety boundaries and reconciliation bridge
         shell: bash
         run: |
           set -euo pipefail
@@ -120,9 +120,17 @@ jobs:
           grep -Fq "requiredLaunchChecksCannotBeWaived:true" cloudflare/admin-api-v6.js
           grep -Fq "privateMessagesNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
-          grep -Fq "ADDitive" /dev/null 2>/dev/null || true
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
+          BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
+          test -f "$BRIDGE"
+          grep -Fq "public.account_enforcements" "$BRIDGE"
+          grep -Fq "admin_control_plane_" "$BRIDGE"
+          grep -Fq "member_discoverable_before_enforcement" "$BRIDGE"
+          grep -Fq "notifications_campaign_id_fkey" "$BRIDGE"
+          grep -Fq "notifications_delivery_id_fkey" "$BRIDGE"
+          grep -Fq "on conflict(user_id) do nothing" "$BRIDGE"
+          grep -Fq "reason_code like 'admin_control_plane_%'" "$BRIDGE"
 
       - name: TypeScript
         run: npm run typecheck
