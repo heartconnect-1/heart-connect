@@ -1,0 +1,33 @@
+export const VERSION='hc-legacy-self-migration-v1';
+
+const ACCESS_COOKIE='__Host-hc_cf_access';
+
+function j(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}})}
+function config(env){return{url:String(env.SUPABASE_URL||'').replace(/\/+$/,''),key:String(env.SUPABASE_PUBLISHABLE_KEY||''),legacy:String(env.APPDEPLOY_ORIGIN||'').replace(/\/+$/,'')}}
+function cookieValue(request,name){for(const part of String(request.headers.get('cookie')||'').split(';')){const i=part.indexOf('=');if(i>0&&part.slice(0,i).trim()===name){try{return decodeURIComponent(part.slice(i+1).trim())}catch{return part.slice(i+1).trim()}}}return''}
+function sameOrigin(request){const site=request.headers.get('sec-fetch-site');if(site==='cross-site')return false;const origin=request.headers.get('origin');if(!origin)return true;try{return new URL(origin).origin===new URL(request.url).origin}catch{return false}}
+function clean(v,max=2000){return String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,max)}
+function list(v,max=30){return Array.isArray(v)?v.map(x=>clean(x,80)).filter(Boolean).slice(0,max):String(v||'').split(',').map(x=>clean(x,80)).filter(Boolean).slice(0,max)}
+function validEmail(v){const x=String(v||'').trim().toLowerCase();return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x)?x:''}
+async function timedFetch(url,init={},timeout=10000){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);try{return await fetch(url,{...init,signal:controller.signal})}finally{clearTimeout(timer)}}
+async function supabase(env,path,{method='GET',token,body}={}){const c=config(env);if(!c.url||!c.key)return{ok:false,status:503,data:{message:'Supabase configuration unavailable.'}};const headers=new Headers({apikey:c.key,accept:'application/json'});if(token)headers.set('authorization','Bearer '+token);if(body!==undefined)headers.set('content-type','application/json');try{const r=await timedFetch(c.url+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)},12000),text=await r.text();let data=null;if(text){try{data=JSON.parse(text)}catch{data=text}}return{ok:r.ok,status:r.status,data}}catch{return{ok:false,status:503,data:{message:'Supabase is temporarily unavailable.'}}}}
+async function legacy(env,path,request){const origin=config(env).legacy;if(!origin||!origin.startsWith('https://'))return{ok:false,status:503,data:{error:'Legacy origin unavailable.'}};const headers=new Headers({accept:'application/json'}),cookie=request.headers.get('cookie');if(cookie)headers.set('cookie',cookie);try{const r=await timedFetch(origin+path,{method:'GET',headers,redirect:'manual'},10000),text=await r.text();let data=null;if(text){try{data=JSON.parse(text)}catch{data=text}}return{ok:r.ok,status:r.status,data}}catch{return{ok:false,status:503,data:{error:'Legacy Heart Connect is temporarily unavailable.'}}}}
+function profilePayload(p,uid){const age=Number(p?.age),name=clean(p?.name,80),city=clean(p?.city,120),country=clean(p?.country,120);if(!name||!city||!country||!Number.isInteger(age)||age<18||age>100)return null;return{user_id:uid,display_name:name,headline:null,bio:clean(p?.bio,2000)||null,age,gender:clean(p?.gender,80)||null,meet_gender:clean(p?.meetGender,80)||'Everyone',country,city,relationship_intention:clean(p?.relationshipGoal,120)||null,occupation:clean(p?.occupation,160)||null,education:clean(p?.education,160)||null,languages:list(p?.languages),interests:list(p?.interests),smoking:clean(p?.smoking,40)||null,drinking:clean(p?.drinking,40)||null,children:clean(p?.children,60)||null,wants_children:clean(p?.wantsChildren,60)||null,personality:clean(p?.personality,500)||null,profile_prompt:clean(p?.prompt,500)||null,travel:p?.travel&&typeof p.travel==='object'?p.travel:{},is_discoverable:false,profile_completion:Math.max(0,Math.min(100,Number(p?.completion)||0)),last_active_at:new Date().toISOString(),updated_at:new Date().toISOString()}}
+
+export async function handleLegacySelfMigration(request,env){const url=new URL(request.url);if(url.pathname!=='/api/_cf/migrate/self')return null;if(request.method!=='POST')return j({error:'Method not allowed.'},405);if(!sameOrigin(request))return j({error:'Cross-site migration request rejected.'},403);
+
+ const token=cookieValue(request,ACCESS_COOKIE);if(!token)return j({error:'Sign in to the new Heart Connect session before migration.'},401);
+ const current=await supabase(env,'/auth/v1/user',{token});if(!current.ok||!current.data?.id)return j({error:'Your new Heart Connect session is unavailable. Sign in again.'},401);
+ const newEmail=validEmail(current.data.email);if(!newEmail||!(current.data.email_confirmed_at||current.data.confirmed_at))return j({error:'Confirm your email before migrating your legacy profile.'},403);
+
+ const oldSession=await legacy(env,'/api/auth/session',request);if(!oldSession.ok||oldSession.data?.authenticated!==true)return j({error:'A valid legacy Heart Connect session is required for self-migration.',code:'legacy_session_required'},409);
+ const oldEmail=validEmail(oldSession.data?.email||oldSession.data?.user?.email);if(!oldEmail||oldEmail!==newEmail)return j({error:'The legacy and Supabase account emails do not match. Migration was not performed.',code:'identity_mismatch'},403);
+
+ const oldProfile=await legacy(env,'/api/me',request);if(!oldProfile.ok)return j({error:'Your legacy profile could not be read. Nothing was changed.',code:'legacy_profile_unavailable'},oldProfile.status>=500?503:409);
+ if(!oldProfile.data)return j({ok:true,migrated:false,reason:'no_legacy_profile'});
+ const record=profilePayload(oldProfile.data,current.data.id);if(!record)return j({error:'The legacy profile is incomplete or invalid. Nothing was migrated.',code:'legacy_profile_invalid'},409);
+
+ const upsert=await supabase(env,'/rest/v1/dating_profiles?on_conflict=user_id',{method:'POST',token,body:record});if(!upsert.ok)return j({error:'The native profile could not be migrated. Nothing was exposed publicly.',code:'native_profile_write_failed'},upsert.status>=500?503:409);
+
+ return j({ok:true,migrated:true,reviewRequired:true,discoverable:false,identityVerified:true,media:{photos:Array.isArray(oldProfile.data?.photos)?oldProfile.data.photos.length:(oldProfile.data?.photo?1:0),video:!!oldProfile.data?.video,voice:!!oldProfile.data?.voice,migrated:false,reason:'Legacy media remains on the legacy store until separately verified and copied.'},entitlements:{migrated:false,reason:'Paid tier and verification privileges are not granted from profile fields during self-migration.'}});
+}
