@@ -1,7 +1,7 @@
 import vm from 'node:vm';
-import {adminHtml} from './admin-ui-v14.js';
+import {adminHtml} from './admin-ui-v15.js';
 
-const html=adminHtml('hc-admin-control-plane-v14-test');
+const html=adminHtml('hc-admin-control-plane-v15-test');
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
 if(!scripts.length)throw new Error('No inline admin scripts found.');
 for(const [i,script] of scripts.entries()){
@@ -18,8 +18,9 @@ for(const [i,script] of scripts.entries()){
     process.exit(1);
   }
 }
-for(const marker of ['Media & HTML sections','hc13PageImage','hc13PageVideo','Post media uploads','hc13CmsImage','hc13CmsVideo']){
-  if(!html.includes(marker))throw new Error(`Missing v14 admin marker: ${marker}`);
+for(const marker of ['Media & HTML sections','hc15PageImage','hc15PageVideo','Direct HTML section','Post media uploads','hc15CmsImage','hc15CmsVideo']){
+  if(!html.includes(marker))throw new Error(`Missing v15 admin marker: ${marker}`);
 }
 if(html.includes("const TYPES=['home','legal','help','landing','content'];"))throw new Error('Broken v11 browser override was not removed.');
-console.log(`Compiled ${scripts.length} admin inline scripts and verified the v14 upload bridge.`);
+if(html.includes('function esc13'))throw new Error('Broken v13 browser bridge was not removed.');
+console.log(`Compiled ${scripts.length} admin inline scripts and verified the v15 visible upload editor.`);
