@@ -183,14 +183,18 @@ async function signIn(request,env){
     return json({error:e?.name==='AbortError'?'Authentication service timed out.':'Authentication service is temporarily unavailable.'},503);
   }finally{clearTimeout(timer)}
 }
-async function session(request,env){
-  if(request.method!=='GET'&&request.method!=='HEAD')return json({error:'Method not allowed.'},405,{allow:'GET, HEAD'});
+export async function validateAdminSession(request,env){
   const token=cookies(request)[COOKIE]||'';
-  if(!token)return json({error:'Not authenticated.'},401,{'set-cookie':clearCookie()});
+  if(!token)return{ok:false,token:'',user:null,role:null};
   const user=await authUser(env,token);
   const role=user?await adminRole(env,user):null;
-  if(!user||!role)return json({error:'Admin session is no longer valid.'},401,{'set-cookie':clearCookie()});
-  const payload={ok:true,user:{id:user.id,email:cleanEmail(user.email)},role};
+  return user&&role?{ok:true,token,user,role}:{ok:false,token,user:null,role:null};
+}
+async function session(request,env){
+  if(request.method!=='GET'&&request.method!=='HEAD')return json({error:'Method not allowed.'},405,{allow:'GET, HEAD'});
+  const state=await validateAdminSession(request,env);
+  if(!state.ok)return json({error:'Admin session is no longer valid.'},401,{'set-cookie':clearCookie()});
+  const payload={ok:true,user:{id:state.user.id,email:cleanEmail(state.user.email)},role:state.role};
   return request.method==='HEAD'?new Response(null,{status:200,headers:{'cache-control':'no-store','x-heart-connect-admin-auth':VERSION}}):json(payload);
 }
 async function logout(request,env){
