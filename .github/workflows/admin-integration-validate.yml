@@ -2,7 +2,7 @@ name: Security + Admin Integration Validation
 
 on:
   push:
-    branches: [integration-security-admin-2026-09-10]
+    branches: [integration-security-admin-2026-09-10, admin-final-polish-2026-09-10]
   workflow_dispatch:
 
 permissions:
@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
-          grep -Fq "from './admin-api-v8.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v9.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
@@ -108,14 +108,16 @@ jobs:
           node --check cloudflare/admin-api-v6.js
           node --check cloudflare/admin-api-v7.js
           node --check cloudflare/admin-api-v8.js
+          node --check cloudflare/admin-api-v9.js
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-ui-v4.js
           node --check cloudflare/admin-ui-v5.js
           node --check cloudflare/admin-ui-v6.js
           node --check cloudflare/admin-ui-v7.js
           node --check cloudflare/admin-ui-v8.js
+          node --check cloudflare/admin-ui-v9.js
 
-      - name: Validate Admin safety boundaries and reconciliation bridge
+      - name: Validate Admin safety, polish and reconciliation bridge
         shell: bash
         run: |
           set -euo pipefail
@@ -123,7 +125,13 @@ jobs:
           grep -Fq "requiredLaunchChecksCannotBeWaived:true" cloudflare/admin-api-v6.js
           grep -Fq "privateMessagesNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
-          grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v8.js
+          grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v9.js
+          grep -Fq "cannot deactivate or change your own current admin role" cloudflare/admin-api-v9.js
+          grep -Fq "permissions-policy" cloudflare/admin-api-v9.js
+          grep -Fq "strict-transport-security" cloudflare/admin-api-v9.js
+          grep -Fq "Sign out" cloudflare/admin-ui-v9.js
+          grep -Fq "Automation & AI" cloudflare/admin-ui-v9.js
+          grep -Fq "sessionCheck" cloudflare/admin-ui-v9.js
           grep -Fq "+ Add Staff Member" cloudflare/admin-ui-v8.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
@@ -140,6 +148,7 @@ jobs:
           test -f "$STAFF_LOOKUP"
           grep -Fq "grant execute on function public.hc_admin_resolve_auth_user_by_email(text) to service_role" "$STAFF_LOOKUP"
           grep -Fq "revoke all on function public.hc_admin_resolve_auth_user_by_email(text) from authenticated" "$STAFF_LOOKUP"
+          test -f supabase/migrations/20260910131500_admin_final_live_indexes.sql
 
       - name: TypeScript
         run: npm run typecheck
