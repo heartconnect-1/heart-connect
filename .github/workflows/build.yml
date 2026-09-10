@@ -2,7 +2,7 @@ name: Build Verification
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, security-stabilization-2026-09-10]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -17,13 +17,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Add AppDeploy CI shim
         run: |
           mkdir -p node_modules/@appdeploy/client
-          printf '%s\n' '{"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js"}' > node_modules/@appdeploy/client/package.json
+          printf '%s\n' '{"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js","types":"./index.d.ts"}' > node_modules/@appdeploy/client/package.json
           printf '%s\n' 'export const auth = {};' 'export const api = {};' 'export const ws = {};' > node_modules/@appdeploy/client/index.js
+          printf '%s\n' 'export const auth: any;' 'export const api: any;' 'export const ws: any;' > node_modules/@appdeploy/client/index.d.ts
+      - name: TypeScript check
+        run: npm run typecheck
       - name: Build
         run: npm run build
       - name: Validate Cloudflare Worker
