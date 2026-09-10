@@ -71,6 +71,21 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
+      - name: Validate current Admin hardening modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check cloudflare/admin-auth-v1.js
+          node --check cloudflare/admin-api-v50.js
+          node --check cloudflare/admin-ui-v50.js
+          node --check cloudflare/worker-admin-v7.js
+          grep -Fq "SameSite=Strict" cloudflare/admin-auth-v1.js
+          grep -Fq "HttpOnly" cloudflare/admin-auth-v1.js
+          grep -Fq "SESSION_MAX_AGE=45*60" cloudflare/admin-auth-v1.js
+          grep -Fq "validateAdminSession" cloudflare/worker-admin-v7.js
+          grep -Fq "cloudflare-admin-router-v50-security-hardened" cloudflare/worker-admin-v7.js
+          grep -Fq "admin-api-v50.js" cloudflare/worker-admin-v7.js
+
       - name: Validate Cloudflare Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
       - name: Deploy Cloudflare Worker
@@ -91,10 +106,31 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$HEART_CONNECT_OWNER_EMAILS"
           printf '%s' "$HEART_CONNECT_OWNER_EMAILS" | npx wrangler secret put HEART_CONNECT_OWNER_EMAILS --config wrangler.router.jsonc
-      - name: Smoke test production admin
+      - name: Smoke test production admin security
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         run: |
-          curl --fail --location --retry 5 --retry-delay 3 --max-time 30 \
-            https://royal-heart.com/admin/login \
-            --output /dev/null
+          set -euo pipefail
+
+          LOGIN_STATUS="$(curl -sS --retry 5 --retry-delay 3 --max-time 30 \
+            -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' \
+            https://royal-heart.com/admin/login)"
+          test "$LOGIN_STATUS" = "200"
+          grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
+          grep -qi '^x-heart-connect-admin-auth\|^x-heart-connect-admin-login' /tmp/hc-login-headers.txt
+
+          ADMIN_STATUS="$(curl -sS --max-time 30 \
+            -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' \
+            https://royal-heart.com/admin)"
+          test "$ADMIN_STATUS" = "302"
+          grep -qi '^location:.*\/admin\/login' /tmp/hc-admin-headers.txt
+
+          SESSION_STATUS="$(curl -sS --max-time 30 \
+            -o /dev/null -w '%{http_code}' \
+            https://royal-heart.com/api/_cf/auth/session)"
+          test "$SESSION_STATUS" = "401"
+
+          CAP_STATUS="$(curl -sS --max-time 30 \
+            -o /dev/null -w '%{http_code}' \
+            https://royal-heart.com/api/admin/capabilities)"
+          test "$CAP_STATUS" = "403"
