@@ -34,6 +34,7 @@ jobs:
             exit 1
           fi
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v8.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
@@ -106,11 +107,13 @@ jobs:
           node --check cloudflare/admin-api-v5.js
           node --check cloudflare/admin-api-v6.js
           node --check cloudflare/admin-api-v7.js
+          node --check cloudflare/admin-api-v8.js
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-ui-v4.js
           node --check cloudflare/admin-ui-v5.js
           node --check cloudflare/admin-ui-v6.js
           node --check cloudflare/admin-ui-v7.js
+          node --check cloudflare/admin-ui-v8.js
 
       - name: Validate Admin safety boundaries and reconciliation bridge
         shell: bash
@@ -120,6 +123,8 @@ jobs:
           grep -Fq "requiredLaunchChecksCannotBeWaived:true" cloudflare/admin-api-v6.js
           grep -Fq "privateMessagesNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v8.js
+          grep -Fq "+ Add Staff Member" cloudflare/admin-ui-v8.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
           BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
@@ -131,6 +136,10 @@ jobs:
           grep -Fq "notifications_delivery_id_fkey" "$BRIDGE"
           grep -Fq "on conflict(user_id) do nothing" "$BRIDGE"
           grep -Fq "reason_code like 'admin_control_plane_%'" "$BRIDGE"
+          STAFF_LOOKUP=supabase/migrations/20260910130000_admin_staff_email_resolution.sql
+          test -f "$STAFF_LOOKUP"
+          grep -Fq "grant execute on function public.hc_admin_resolve_auth_user_by_email(text) to service_role" "$STAFF_LOOKUP"
+          grep -Fq "revoke all on function public.hc_admin_resolve_auth_user_by_email(text) from authenticated" "$STAFF_LOOKUP"
 
       - name: TypeScript
         run: npm run typecheck
