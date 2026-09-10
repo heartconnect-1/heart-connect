@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
-          grep -Fq "from './admin-api-v15.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v16.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
@@ -115,6 +115,7 @@ jobs:
           node --check cloudflare/admin-api-v13.js
           node --check cloudflare/admin-api-v14.js
           node --check cloudflare/admin-api-v15.js
+          node --check cloudflare/admin-api-v16.js
           node --check cloudflare/admin-login-v2.js
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-ui-v4.js
@@ -129,6 +130,7 @@ jobs:
           node --check cloudflare/admin-ui-v13.js
           node --check cloudflare/admin-ui-v14.js
           node --check cloudflare/admin-ui-v15.js
+          node --check cloudflare/admin-ui-v16.js
           node --check cloudflare/admin-html-client-check.js
           node cloudflare/admin-html-client-check.js
 
@@ -142,19 +144,23 @@ jobs:
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v9.js
           grep -Fq "cannot deactivate or change your own current admin role" cloudflare/admin-api-v9.js
-          grep -Fq "permissions-policy" cloudflare/admin-api-v15.js
-          grep -Fq "strict-transport-security" cloudflare/admin-api-v15.js
-          grep -Fq "removeInlineScriptContaining" cloudflare/admin-ui-v15.js
+          grep -Fq "permissions-policy" cloudflare/admin-api-v16.js
+          grep -Fq "strict-transport-security" cloudflare/admin-api-v16.js
+          grep -Fq "admin.user.onboard_existing" cloudflare/admin-api-v16.js
+          grep -Fq "At least one approved profile photo is required" cloudflare/admin-api-v16.js
+          grep -Fq "moderation_status:'pending'" cloudflare/admin-api-v16.js
+          grep -Fq "Never execute actions" cloudflare/admin-api-v16.js
           grep -Fq "Sign out" cloudflare/admin-ui-v9.js
           grep -Fq "Ctrl/⌘ + K" cloudflare/admin-ui-v10.js
           grep -Fq "+ Add Staff Member" cloudflare/admin-ui-v8.js
           grep -Fq "Media & HTML sections" cloudflare/admin-ui-v15.js
-          grep -Fq "hc15PageImage" cloudflare/admin-ui-v15.js
-          grep -Fq "hc15PageVideo" cloudflare/admin-ui-v15.js
-          grep -Fq "Direct HTML section" cloudflare/admin-ui-v15.js
-          grep -Fq "Post media uploads" cloudflare/admin-ui-v15.js
-          grep -Fq "hc15CmsImage" cloudflare/admin-ui-v15.js
-          grep -Fq "hc15CmsVideo" cloudflare/admin-ui-v15.js
+          grep -Fq "+ Add User" cloudflare/admin-ui-v16.js
+          grep -Fq "Profile editor" cloudflare/admin-ui-v16.js
+          grep -Fq "Discover visibility" cloudflare/admin-ui-v16.js
+          grep -Fq "Upload profile photo" cloudflare/admin-ui-v16.js
+          grep -Fq "Upload profile video" cloudflare/admin-ui-v16.js
+          grep -Fq "AI admin assistant" cloudflare/admin-ui-v16.js
+          grep -Fq "Back to Users" cloudflare/admin-ui-v16.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
           BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
