@@ -52,6 +52,9 @@ jobs:
           node --check cloudflare/admin-api-v5.js
           node --check cloudflare/admin-ui-v5.js
           node --check cloudflare/worker-admin-v5.js
+          node --check cloudflare/admin-api-v6.js
+          node --check cloudflare/admin-ui-v6.js
+          node --check cloudflare/worker-admin-v6.js
 
       - name: Check Phase 5 safeguards are present
         shell: bash
@@ -61,6 +64,17 @@ jobs:
           grep -Fq "source_key" supabase/migrations/20260910120000_admin_phase5_ai_notifications_automation.sql
           grep -Fq "aiExecutesHighImpactActions:false" cloudflare/admin-api-v5.js
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
+
+      - name: Check Phase 6 safeguards are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "requiredLaunchChecksCannotBeWaived:true" cloudflare/admin-api-v6.js
+          grep -Fq "noAutomaticBans:true" cloudflare/admin-api-v6.js
+          grep -Fq "noAutomaticPaymentActions:true" cloudflare/admin-api-v6.js
+          grep -Fq "No user bans, verification decisions, payment actions or deletion happen automatically here" cloudflare/admin-ui-v6.js
+          grep -Fq "Required launch checks cannot be waived" supabase/migrations/20260910121500_admin_phase6_command_center.sql
+          grep -Fq '"main": "cloudflare/worker-admin-v6.js"' wrangler.router.jsonc
 
       - name: Compile Worker without deploying
         run: npx --yes wrangler@latest deploy --dry-run --config wrangler.router.jsonc
