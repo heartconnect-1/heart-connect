@@ -1,0 +1,43 @@
+name: Admin Phase 2 Validation
+
+on:
+  push:
+    branches:
+      - admin-dashboard-upgrade-2026-09-10
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout admin branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Frontend production build
+        run: npm run build
+
+      - name: Check Cloudflare admin module syntax
+        run: |
+          node --check cloudflare/admin-api-v1.js
+          node --check cloudflare/admin-api-v2.js
+          node --check cloudflare/admin-api-v2-guard.js
+          node --check cloudflare/worker-admin-v2.js
+
+      - name: Compile Worker without deploying
+        run: npx --yes wrangler@latest deploy --dry-run --config wrangler.router.jsonc
