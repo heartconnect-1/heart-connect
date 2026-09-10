@@ -1,9 +1,11 @@
 import previousWorker from './worker-v13.js';
 import TRAVEL_PAGE from './travel-page-v1.txt';
+import TRAVEL_INTERACTIONS from './travel-interactions-v1.txt';
 
 const EDGE_VERSION='cloudflare-router-v14';
 const TRAVEL_PATH='/services/travel-planning-holiday-packages/';
 const ENQUIRY_PATH='/_hc/travel-enquiry';
+const INTERACTIONS_PATH='/_hc/travel-interactions-v1.js';
 
 function clean(value,max=500){return String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max)}
 function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)&&value.length<=254}
@@ -24,7 +26,8 @@ function render(url){
   return TRAVEL_PAGE
     .replace('{{STATUS_CLASS}}',sent?'success':failed?'failed':'')
     .replace('{{STATUS_HIDDEN}}',sent||failed?'':'hidden')
-    .replace('{{STATUS_TEXT}}',sent?'Travel enquiry sent successfully. The Heart Connect team can now review your trip brief.':failed?'Your enquiry could not be delivered right now. Please email info@royal-heart.com.':'');
+    .replace('{{STATUS_TEXT}}',sent?'Travel enquiry sent successfully. The Heart Connect team can now review your trip brief.':failed?'Your enquiry could not be delivered right now. Please email info@royal-heart.com.':'')
+    .replace('</body>','<script src="'+INTERACTIONS_PATH+'" defer></script></body>');
 }
 function redirect(request,state){const u=new URL(TRAVEL_PATH,request.url);u.searchParams.set('enquiry',state);u.hash='enquiry';return Response.redirect(u.toString(),303)}
 async function enquiry(request,env,ctx){
@@ -55,6 +58,7 @@ async function enquiry(request,env,ctx){
 export default {
   async fetch(request,env,ctx){
     const url=new URL(request.url);
+    if(url.pathname===INTERACTIONS_PATH&&request.method==='GET')return new Response(TRAVEL_INTERACTIONS,{headers:{'content-type':'application/javascript; charset=utf-8','cache-control':'public, max-age=604800, immutable','x-content-type-options':'nosniff','x-heart-connect-edge':EDGE_VERSION}});
     if(url.pathname==='/services/travel-planning-holiday-packages'&&(request.method==='GET'||request.method==='HEAD')){
       url.pathname=TRAVEL_PATH;return Response.redirect(url.toString(),308);
     }
