@@ -19,7 +19,7 @@ async function reverse(request,env){const actor=await actorFor(request,env);if(!
 
 export async function handleAdmin(request,env){
   const u=new URL(request.url),p=u.pathname;
-  if((p==='/admin'||p==='/admin/')&&(request.method==='GET'||request.method==='HEAD'))return page(adminHtml(VERSION),request.method==='HEAD');
+  if((p==='/admin'||p==='/admin/')&&(request.method==='GET'||request.method==='HEAD'))return page(adminHtml(VERSION),request.method==='HEAD');if(!p.startsWith('/api/admin/'))return handleAdminV19(request,env);
   if(!sameOrigin(request))return j({error:'Cross-site admin request blocked.'},403);
   if(p==='/api/admin/mapbox/config'&&request.method==='GET')return config(request,env);
   if(p==='/api/admin/mapbox/forward'&&request.method==='GET')return forward(request,env);
