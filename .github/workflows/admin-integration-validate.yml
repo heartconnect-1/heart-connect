@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
-          grep -Fq "from './admin-api-v12.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v13.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
@@ -112,6 +112,7 @@ jobs:
           node --check cloudflare/admin-api-v10.js
           node --check cloudflare/admin-api-v11.js
           node --check cloudflare/admin-api-v12.js
+          node --check cloudflare/admin-api-v13.js
           node --check cloudflare/admin-login-v2.js
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-ui-v4.js
@@ -123,6 +124,9 @@ jobs:
           node --check cloudflare/admin-ui-v10.js
           node --check cloudflare/admin-ui-v11.js
           node --check cloudflare/admin-ui-v12.js
+          node --check cloudflare/admin-ui-v13.js
+          node --check cloudflare/admin-html-client-check.js
+          node cloudflare/admin-html-client-check.js
 
       - name: Validate Admin safety, polish and reconciliation bridge
         shell: bash
@@ -134,8 +138,8 @@ jobs:
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v9.js
           grep -Fq "cannot deactivate or change your own current admin role" cloudflare/admin-api-v9.js
-          grep -Fq "permissions-policy" cloudflare/admin-api-v12.js
-          grep -Fq "strict-transport-security" cloudflare/admin-api-v12.js
+          grep -Fq "permissions-policy" cloudflare/admin-api-v13.js
+          grep -Fq "strict-transport-security" cloudflare/admin-api-v13.js
           grep -Fq "Sign out" cloudflare/admin-ui-v9.js
           grep -Fq "Automation & AI" cloudflare/admin-ui-v9.js
           grep -Fq "sessionCheck" cloudflare/admin-ui-v9.js
@@ -152,6 +156,11 @@ jobs:
           grep -Fq "Media uploads" cloudflare/admin-ui-v12.js
           grep -Fq "Upload page image" cloudflare/admin-ui-v12.js
           grep -Fq "Post media uploads" cloudflare/admin-ui-v12.js
+          grep -Fq "Media & HTML sections" cloudflare/admin-ui-v13.js
+          grep -Fq "hc13PageImage" cloudflare/admin-ui-v13.js
+          grep -Fq "hc13PageVideo" cloudflare/admin-ui-v13.js
+          grep -Fq "Direct HTML section" cloudflare/admin-ui-v13.js
+          grep -Fq "Post media uploads" cloudflare/admin-ui-v13.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
           BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
