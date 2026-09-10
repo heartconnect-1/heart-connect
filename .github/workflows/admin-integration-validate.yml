@@ -154,6 +154,8 @@ jobs:
           node --check cloudflare/admin-ui-v25.js
           node --check cloudflare/admin-ui-v26.js
           node --check cloudflare/admin-ui-v27.js
+          cp cloudflare/booking-advanced-v10.txt /tmp/booking-advanced-v10.js
+          node --check /tmp/booking-advanced-v10.js
           node --check cloudflare/admin-html-client-check.js
           node cloudflare/admin-html-client-check.js
 
@@ -242,6 +244,13 @@ jobs:
           grep -Fq "Trust & safety command center" cloudflare/admin-ui-v27.js
           grep -Fq "AI moderation assistant" cloudflare/admin-ui-v27.js
           grep -Fq "report resolution does not automatically suspend" cloudflare/admin-ui-v27.js
+          grep -Fq "Advanced BnB reservation" cloudflare/booking-advanced-v10.txt
+          grep -Fq "Booking readiness" cloudflare/booking-advanced-v10.txt
+          grep -Fq "Choose locality" cloudflare/booking-advanced-v10.txt
+          grep -Fq "payment provider confirms it" cloudflare/booking-advanced-v10.txt
+          grep -Fq "BOOKING_LOCATION_SEARCH" cloudflare/worker-admin-v7.js
+          grep -Fq "MAPBOX_PUBLIC_TOKEN" cloudflare/worker-admin-v7.js
+          grep -Fq "storesExactCoordinates:false" cloudflare/worker-admin-v7.js
           grep -Fq "/api/admin/ai/operations" cloudflare/admin-ui-v27.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
