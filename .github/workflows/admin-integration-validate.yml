@@ -251,6 +251,9 @@ jobs:
           grep -Fq "BOOKING_LOCATION_SEARCH" cloudflare/worker-admin-v7.js
           grep -Fq "MAPBOX_PUBLIC_TOKEN" cloudflare/worker-admin-v7.js
           grep -Fq "storesExactCoordinates:false" cloudflare/worker-admin-v7.js
+          grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV16(request,env);" cloudflare/admin-api-v17.js
+          grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV18(request,env);" cloudflare/admin-api-v19.js
+          grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV19(request,env);" cloudflare/admin-api-v20.js
           grep -Fq "/api/admin/ai/operations" cloudflare/admin-ui-v27.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
