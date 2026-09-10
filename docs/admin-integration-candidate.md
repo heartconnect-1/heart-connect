@@ -13,6 +13,7 @@ The completed Admin Control Plane was then layered on top from:
 - Admin branch: `admin-dashboard-upgrade-2026-09-10`
 - Admin checkpoint: `43be0dc688ca4ca346d47fd0ec50323f94074c18`
 - Admin wrapper: `cloudflare/worker-admin-v7.js`
+- Initial integration assembly commit: `b784657f194f9144ad348376975b12cb560602ea`
 
 ## Reconciliation rule
 
