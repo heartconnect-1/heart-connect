@@ -1,9 +1,9 @@
 import previousWorker from './worker-v15.js';
-import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v45.js';
+import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v46.js';
 import {handleAdminLogin} from './admin-login-v2.js';
 import BOOKING_ADVANCED from './booking-advanced-v10.txt';
 
-const EDGE_VERSION='cloudflare-admin-router-v45-staff-roles-photo-power';
+const EDGE_VERSION='cloudflare-admin-router-v46-direct-staff-photo-upload';
 const BOOKING_ASSET='/_hc/booking-advanced-v10.js';
 const BOOKING_LOCATION_SEARCH='/_hc/booking-location-search';
 
