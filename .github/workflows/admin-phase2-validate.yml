@@ -55,6 +55,9 @@ jobs:
           node --check cloudflare/admin-api-v6.js
           node --check cloudflare/admin-ui-v6.js
           node --check cloudflare/worker-admin-v6.js
+          node --check cloudflare/admin-api-v7.js
+          node --check cloudflare/admin-ui-v7.js
+          node --check cloudflare/worker-admin-v7.js
 
       - name: Check Phase 5 safeguards are present
         shell: bash
@@ -74,7 +77,17 @@ jobs:
           grep -Fq "noAutomaticPaymentActions:true" cloudflare/admin-api-v6.js
           grep -Fq "No user bans, verification decisions, payment actions or deletion happen automatically here" cloudflare/admin-ui-v6.js
           grep -Fq "Required launch gates cannot be waived" supabase/migrations/20260910121500_admin_phase6_command_center.sql
-          grep -Fq '"main": "cloudflare/worker-admin-v6.js"' wrangler.router.jsonc
+
+      - name: Check Phase 7 safeguards are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "privateMessagesNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "securityBranchIsNotModifiedByThisPhase:true" cloudflare/admin-api-v7.js
+          grep -Fq "Never exported: private messages" cloudflare/admin-ui-v7.js
+          grep -Fq "Export contents are not stored here" supabase/migrations/20260910123000_admin_phase7_reports_security.sql
+          grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
 
       - name: Compile Worker without deploying
         run: npx --yes wrangler@latest deploy --dry-run --config wrangler.router.jsonc
