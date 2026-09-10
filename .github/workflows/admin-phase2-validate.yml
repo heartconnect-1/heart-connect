@@ -49,7 +49,18 @@ jobs:
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-api-v4.js
           node --check cloudflare/admin-ui-v4.js
-          node --check cloudflare/worker-admin-v4.js
+          node --check cloudflare/admin-api-v5.js
+          node --check cloudflare/admin-ui-v5.js
+          node --check cloudflare/worker-admin-v5.js
+
+      - name: Check Phase 5 safeguards are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "adapter_not_implemented" cloudflare/admin-api-v5.js
+          grep -q "source_key" supabase/migrations/20260910120000_admin_phase5_ai_notifications_automation.sql
+          grep -q "aiExecutesHighImpactActions:false" cloudflare/admin-api-v5.js
+          grep -q '"*/5 * * * *"' wrangler.router.jsonc
 
       - name: Compile Worker without deploying
         run: npx --yes wrangler@latest deploy --dry-run --config wrangler.router.jsonc
