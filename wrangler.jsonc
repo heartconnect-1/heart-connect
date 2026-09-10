@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "heart-connect-edge-router",
+  "main": "cloudflare/worker-v11.js",
+  "compatibility_date": "2026-09-09",
+  "workers_dev": true,
+  "preview_urls": true,
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.txt"],
+      "fallthrough": true
+    }
+  ],
+  "vars": {
+    "APPDEPLOY_ORIGIN": "https://heart-connect-n8dpuu.v2.appdeploy.ai",
+    "BOOKING_ADMIN_EMAIL": "admin@royal-heart.com"
+  }
+}
