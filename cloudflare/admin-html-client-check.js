@@ -1,7 +1,7 @@
 import vm from 'node:vm';
-import {adminHtml} from './admin-ui-v16.js';
+import {adminHtml} from './admin-ui-v17.js';
 
-const html=adminHtml('hc-admin-control-plane-v16-test');
+const html=adminHtml('hc-admin-control-plane-v17-test');
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
 if(!scripts.length)throw new Error('No inline admin scripts found.');
 for(const [i,script] of scripts.entries()){
@@ -18,9 +18,9 @@ for(const [i,script] of scripts.entries()){
     process.exit(1);
   }
 }
-for(const marker of ['Media & HTML sections','hc15PageImage','hc15PageVideo','Post media uploads','+ Add User','Profile editor','Discover visibility','Upload profile photo','Upload profile video','AI admin assistant','Back to Users']){
+for(const marker of ['Media & HTML sections','hc15PageImage','hc15PageVideo','Post media uploads','+ Add User','Profile editor','Discover visibility','Upload profile photo','Upload profile video','AI admin assistant','Back to Users','Location & discovery','hc17Country','hc17City','hc17SaveLocation']){
   if(!html.includes(marker))throw new Error(`Missing current Admin marker: ${marker}`);
 }
 if(html.includes("const TYPES=['home','legal','help','landing','content'];"))throw new Error('Broken v11 browser override was not removed.');
 if(html.includes('function esc13'))throw new Error('Broken v13 browser bridge was not removed.');
-console.log(`Compiled ${scripts.length} admin inline scripts and verified the v16 Pages/CMS/User workspaces.`);
+console.log(`Compiled ${scripts.length} admin inline scripts and verified the v17 Pages/CMS/User/location workspaces.`);
