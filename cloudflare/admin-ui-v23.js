@@ -6,11 +6,11 @@ export function adminHtml(version){
 @media(max-width:1050px){.hc23-grid{grid-template-columns:1fr}.hc23-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.hc23-hero-top{display:block}.hc23-hero-actions{margin-top:12px}.hc23-kpis,.hc23-attention,.hc23-ops,.hc23-quick{grid-template-columns:1fr}.hc23-kpi{min-height:auto}}
 </style><script>
 (()=>{
-  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const $=s=>document.querySelector(s), all=s=>[...document.querySelectorAll(s)];
   function esc(v){return String(v==null?'':v).replace(/[&<>\\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\"':'&quot;',"'":'&#39;'}[m]))}
   async function get(url){const r=await fetch(url,{credentials:'same-origin',headers:{accept:'application/json'}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed.');return d}
   async function post(url,b){const r=await fetch(url,{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify(b)});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed.');return d}
-  function navBy(tab,label){return $('#nav button[data-tab="'+tab+'"]')||$$('#nav button').find(b=>b.textContent.trim()===label)}
+  function navBy(tab,label){return $('#nav button[data-tab="'+tab+'"]')||all('#nav button').find(b=>b.textContent.trim()===label)}
   function go(tab,label,after){const b=navBy(tab,label);if(!b)return;b.click();if(after)setTimeout(()=>{const x=document.getElementById(after);if(x)x.click()},650)}
   function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
   function chip(label,ok){return '<span class="hc23-chip '+(ok?'ok':'warn')+'"><i class="hc23-dot"></i>'+esc(label)+'</span>'}
