@@ -1,15 +1,19 @@
 import previousWorker from './worker-v11.js';
 import {handleNativeApi,securityHeaders,VERSION as NATIVE_VERSION} from './native-api-v1.js';
+import {firewallBefore,firewallAfter,VERSION as FIREWALL_VERSION} from './security-firewall-v1.js';
 
 const EDGE_VERSION='cloudflare-router-v12';
 
-function edge(response){const secured=securityHeaders(response);const headers=new Headers(secured.headers);headers.set('x-heart-connect-edge',EDGE_VERSION);headers.set('x-heart-connect-native-version',NATIVE_VERSION);return new Response(secured.body,{status:secured.status,statusText:secured.statusText,headers})}
+function edge(response){const secured=securityHeaders(response);const headers=new Headers(secured.headers);headers.set('x-heart-connect-edge',EDGE_VERSION);headers.set('x-heart-connect-native-version',NATIVE_VERSION);headers.set('x-heart-connect-firewall-version',FIREWALL_VERSION);return new Response(secured.body,{status:secured.status,statusText:secured.statusText,headers})}
 
 export default {
   async fetch(request,env,ctx){
     const native=await handleNativeApi(request,env);
     if(native)return edge(native);
-    const response=await previousWorker.fetch(request,env,ctx);
+    const blocked=await firewallBefore(request,env);
+    if(blocked)return edge(blocked);
+    let response=await previousWorker.fetch(request,env,ctx);
+    response=await firewallAfter(request,env,response);
     return edge(response);
   }
 };
