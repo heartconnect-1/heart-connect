@@ -55,19 +55,8 @@ jobs:
           export const auth: AuthClient;
           export const ws: { connect(...args: any[]): WsConnection };
           EOF
-      - name: TypeScript diagnostics
-        id: typecheck
-        continue-on-error: true
-        run: |
-          npm run typecheck 2>&1 | tee typecheck-errors.txt
-          test ${PIPESTATUS[0]} -eq 0
-      - name: Upload TypeScript diagnostics
-        if: steps.typecheck.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: typecheck-errors
-          path: typecheck-errors.txt
-          retention-days: 3
+      - name: TypeScript
+        run: npm run typecheck
       - name: Build
         run: npm run build
       - name: Validate Cloudflare Worker
