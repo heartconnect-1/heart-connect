@@ -6,11 +6,12 @@ export function adminHtml(version){
 @media(max-width:1100px){.hc26-grid{grid-template-columns:1fr}.hc26-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.hc26-hero-top{display:block}.hc26-periods{margin-top:12px}.hc26-kpis,.hc26-ratios{grid-template-columns:1fr}.hc26-row{grid-template-columns:1fr 1fr}.hc26-row .hc26-track{grid-column:1/-1}.hc26-row span,.hc26-row b{text-align:left}}
 </style><script>
 (()=>{
+  window.__hcAnalyticsV26Available=true;
   const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)];
   let days=30,running=false;
   function esc(v){return String(v==null?'':v).replace(/[&<>\\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\"':'&quot;',"'":'&#39;'}[m]))}
   function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
-  function fmt(v){const x=Number(v);return Number.isFinite(x)?new Intl.NumberFormat().format(x):'—'}
+  function fmt(v){if(v===null||v===undefined||v==='')return '—';const x=Number(v);return Number.isFinite(x)?new Intl.NumberFormat().format(x):'—'}
   function pct(a,b){if(!Number.isFinite(a)||!Number.isFinite(b)||b===0)return null;return Math.round((a-b)/Math.abs(b)*100)}
   function ratio(a,b,scale=1){if(!Number.isFinite(Number(a))||!Number.isFinite(Number(b))||Number(b)===0)return null;return (Number(a)/Number(b)*scale)}
   async function get(url){const r=await fetch(url,{credentials:'same-origin',headers:{accept:'application/json'}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Request failed');return d}
