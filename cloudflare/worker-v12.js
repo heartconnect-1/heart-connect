@@ -1,5 +1,5 @@
 import previousWorker from './worker-v11.js';
-import {handleNativeApi,securityHeaders,VERSION as NATIVE_VERSION} from './native-api-v1.js';
+import {handleNativeApi,securityHeaders,VERSION as NATIVE_VERSION} from './native-api-v2.js';
 import {firewallBefore,firewallAfter,VERSION as FIREWALL_VERSION} from './security-firewall-v1.js';
 import {staticResponse,timed,VERSION as PERFORMANCE_VERSION} from './performance-v1.js';
 
