@@ -36,6 +36,7 @@ jobs:
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
           grep -Fq "from './admin-api-v21.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
+          grep -Fq '"keep_vars": true' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
           grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
 
