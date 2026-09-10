@@ -225,3 +225,6 @@ Also enable Supabase Auth leaked-password protection in project authentication s
 ## Release rule
 
 Do **not** market the deployment as fully hardened until the AppDeploy v91 patch is actually deployed and the mutual-match/private-media regression tests pass against production.
+
+---
+Cloudflare preview-build trigger: 2026-09-10T10:22:00+03:00. This documentation-only change intentionally exists to trigger the non-production Git integration build for `security-stabilization-2026-09-10`; it does not change runtime behavior.
