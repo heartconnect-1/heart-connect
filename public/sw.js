@@ -1,1 +1,51 @@
-const CACHE='heart-connect-shell-v9';const SHELL=['/','/manifest.webmanifest','/hc-icon.svg','/robots.txt','/sitemap.xml','/llms.txt'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k.startsWith('heart-connect-shell-')).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==location.origin||u.pathname.includes('/api/')||u.pathname.includes('__appdeploy'))return;if(r.mode==='navigate'){e.respondWith(fetch(r).then(x=>{const copy=x.clone();caches.open(CACHE).then(c=>c.put('/',copy));return x}).catch(()=>caches.match('/')));return}e.respondWith(caches.match(r).then(cached=>cached||fetch(r).then(x=>{if(x.ok&&['script','style','image','font'].includes(r.destination)){const copy=x.clone();caches.open(CACHE).then(c=>c.put(r,copy))}return x})))})
+const CACHE='heart-connect-shell-v10';
+const SHELL=['/','/manifest.webmanifest','/hc-icon.svg','/robots.txt','/sitemap.xml','/llms.txt'];
+
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
+});
+
+self.addEventListener('activate',event=>{
+  event.waitUntil(
+    caches.keys()
+      .then(keys=>Promise.all(keys.filter(key=>key!==CACHE&&key.startsWith('heart-connect-shell-')).map(key=>caches.delete(key))))
+      .then(()=>self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch',event=>{
+  const request=event.request;
+  const url=new URL(request.url);
+
+  if(request.method!=='GET'||url.origin!==location.origin)return;
+
+  // Never cache or serve secure/admin/API traffic through the public PWA shell.
+  if(url.pathname.startsWith('/admin')||url.pathname.startsWith('/api/')||url.pathname.includes('__appdeploy'))return;
+
+  // Only the public root navigation is kept as an offline shell.
+  if(request.mode==='navigate'){
+    if(url.pathname!=='/')return;
+    event.respondWith(
+      fetch(request)
+        .then(response=>{
+          if(response.ok){
+            const copy=response.clone();
+            caches.open(CACHE).then(cache=>cache.put('/',copy));
+          }
+          return response;
+        })
+        .catch(()=>caches.match('/'))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request).then(cached=>cached||fetch(request).then(response=>{
+      if(response.ok&&['script','style','image','font'].includes(request.destination)){
+        const copy=response.clone();
+        caches.open(CACHE).then(cache=>cache.put(request,copy));
+      }
+      return response;
+    }))
+  );
+});

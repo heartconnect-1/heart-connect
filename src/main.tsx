@@ -5,7 +5,7 @@ import PublicSite,{isPublicPath} from './PublicSite';
 import { startSupabaseBridge } from './lib/supabase-bridge';
 import './index.css';
 
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+if('serviceWorker' in navigator&&!window.location.pathname.startsWith('/admin'))window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 startSupabaseBridge();
 
 const pathname=window.location.pathname;
