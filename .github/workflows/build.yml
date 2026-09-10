@@ -115,22 +115,29 @@ jobs:
           LOGIN_STATUS="$(curl -sS --retry 5 --retry-delay 3 --max-time 30 \
             -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' \
             https://royal-heart.com/admin/login)"
+          echo "admin/login => $LOGIN_STATUS"
           test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
-          grep -qi '^x-heart-connect-admin-auth\|^x-heart-connect-admin-login' /tmp/hc-login-headers.txt
+          grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v50-security-hardened' /tmp/hc-login-headers.txt
 
           ADMIN_STATUS="$(curl -sS --max-time 30 \
             -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' \
             https://royal-heart.com/admin)"
+          echo "admin => $ADMIN_STATUS"
           test "$ADMIN_STATUS" = "302"
           grep -qi '^location:.*\/admin\/login' /tmp/hc-admin-headers.txt
 
           SESSION_STATUS="$(curl -sS --max-time 30 \
             -o /dev/null -w '%{http_code}' \
             https://royal-heart.com/api/_cf/auth/session)"
+          echo "auth/session => $SESSION_STATUS"
           test "$SESSION_STATUS" = "401"
 
           CAP_STATUS="$(curl -sS --max-time 30 \
             -o /dev/null -w '%{http_code}' \
             https://royal-heart.com/api/admin/capabilities)"
-          test "$CAP_STATUS" = "403"
+          echo "admin/capabilities => $CAP_STATUS"
+          case "$CAP_STATUS" in
+            401|403) ;;
+            *) echo "Expected unauthenticated Admin API denial, got $CAP_STATUS"; exit 1 ;;
+          esac
