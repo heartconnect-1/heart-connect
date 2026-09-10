@@ -136,7 +136,7 @@ jobs:
           grep -Fq "Automation & AI" cloudflare/admin-ui-v9.js
           grep -Fq "sessionCheck" cloudflare/admin-ui-v9.js
           grep -Fq "Ctrl/⌘ + K" cloudflare/admin-ui-v10.js
-          grep -Fq "Admin data connected" cloudflare/admin-ui-v10.js
+          grep -Fq "serviceRoleConfigured" cloudflare/admin-ui-v10.js
           grep -Fq "Toggle compact layout" cloudflare/admin-ui-v10.js
           grep -Fq "+ Add Staff Member" cloudflare/admin-ui-v8.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
