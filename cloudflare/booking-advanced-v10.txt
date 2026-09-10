@@ -1,0 +1,101 @@
+(()=>{
+if(window.__hcBookingAdvancedV10)return;window.__hcBookingAdvancedV10=true;
+if(!location.pathname.startsWith('/bookings'))return;
+
+const text=e=>String(e?.textContent||'').trim();
+const labels=()=>[...document.querySelectorAll('label')];
+const labelStarts=(...names)=>labels().find(x=>names.some(n=>text(x).toLowerCase().startsWith(n.toLowerCase())))||null;
+const field=(...names)=>labelStarts(...names)?.querySelector('input,select,textarea')||null;
+const setValue=(el,value)=>{if(!el)return;const proto=el instanceof HTMLSelectElement?HTMLSelectElement.prototype:el instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;const d=Object.getOwnPropertyDescriptor(proto,'value');d?.set?d.set.call(el,value):el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))};
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const bookingType=()=>new URL(location.href).searchParams.get('type')==='date'?'date':'bnb';
+const money=n=>'KES '+Number(n||0).toLocaleString();
+const nights=(a,b)=>{const x=Date.parse(String(a||'')+'T00:00:00Z'),y=Date.parse(String(b||'')+'T00:00:00Z');if(!Number.isFinite(x)||!Number.isFinite(y))return 0;return Math.round((y-x)/86400000)};
+
+function style(){
+  if(document.getElementById('hc-booking-v10-style'))return;
+  const s=document.createElement('style');s.id='hc-booking-v10-style';s.textContent=`
+  .hc10-shell{margin:16px 0 20px;border:1px solid #e5d9e0;background:linear-gradient(135deg,#fff8fb,#f7f5ff);border-radius:22px;padding:18px;box-shadow:0 18px 50px rgba(37,22,53,.08)}
+  .hc10-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.hc10-kicker{font-size:10px;font-weight:900;letter-spacing:.13em;color:#d53065;text-transform:uppercase}.hc10-head h2{margin:4px 0 5px;font-size:23px;line-height:1.15;color:#17192b}.hc10-head p{margin:0;color:#6f7285;font-size:12px;line-height:1.55;max-width:730px}
+  .hc10-trust{display:flex;gap:6px;flex-wrap:wrap}.hc10-trust span{border:1px solid #e9dde4;background:#fff;border-radius:999px;padding:6px 9px;font-size:9px;font-weight:800;color:#5f6274}
+  .hc10-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:16px}.hc10-step{border:1px solid #e8e4eb;background:#fff;border-radius:12px;padding:9px}.hc10-step b{display:block;font-size:10px;color:#24263a}.hc10-step small{display:block;font-size:9px;color:#888b9a;margin-top:2px}.hc10-step.ready{border-color:#bfe7d4;background:#f2fbf6}.hc10-step.ready b:before{content:'✓ ';color:#148653}
+  .hc10-location{border:1px solid #e2dbe6;background:#fff;border-radius:18px;padding:16px;margin:16px 0}.hc10-location-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.hc10-location h3{margin:0;font-size:16px}.hc10-location p{margin:4px 0 0;color:#747789;font-size:11px;line-height:1.5}.hc10-loc-search{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}.hc10-loc-search input{min-height:44px;border:1px solid #dfe0e8;border-radius:11px;padding:10px 12px;font:inherit;font-size:12px;outline:0}.hc10-loc-search input:focus{border-color:#a77ac9;box-shadow:0 0 0 3px rgba(167,122,201,.12)}.hc10-loc-search button{border:0;border-radius:11px;background:#121735;color:#fff;padding:0 15px;font-size:11px;font-weight:900;cursor:pointer}.hc10-results{display:grid;gap:6px;margin-top:8px}.hc10-result{border:1px solid #e7e4eb;background:#fafafe;border-radius:11px;padding:10px 11px;text-align:left;cursor:pointer;color:#2b2e43}.hc10-result b{display:block;font-size:11px}.hc10-result small{display:block;color:#777a8c;font-size:9px;margin-top:2px}.hc10-selected{margin-top:10px;border:1px solid #cce9da;background:#f2faf6;border-radius:11px;padding:10px 11px;color:#236045;font-size:10px}.hc10-loc-note{font-size:9px;color:#8a8c9b;margin-top:7px}
+  .hc10-property{border:1px solid #eee5e9;background:#fffafb;border-radius:15px;padding:13px;margin:12px 0}.hc10-property b{font-size:11px}.hc10-property p{font-size:9px;color:#7f7f90;margin:3px 0 8px}.hc10-property-options{display:flex;gap:6px;flex-wrap:wrap}.hc10-property-options button{border:1px solid #e2dbe4;background:#fff;color:#45485d;border-radius:999px;padding:7px 10px;font-size:9px;font-weight:800;cursor:pointer}.hc10-property-options button.active{background:#121735;color:#fff;border-color:#121735}
+  .hc10-ready{border:1px solid #e5e1e8;background:#fff;border-radius:18px;padding:15px;margin:16px 0}.hc10-ready-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.hc10-ready h3{margin:0;font-size:15px}.hc10-score{font-size:11px;font-weight:900;color:#d53065}.hc10-ready-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}.hc10-check{border:1px solid #ece9ef;border-radius:11px;padding:9px;font-size:10px;color:#737687;background:#fafafe}.hc10-check.ok{border-color:#cae7d8;background:#f3faf6;color:#245f44}.hc10-check.ok:before{content:'✓ ';font-weight:900;color:#118450}.hc10-check:not(.ok):before{content:'○ ';font-weight:900;color:#a8a8b1}
+  .hc10-review{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.hc10-review div{border:1px solid #ece9ef;background:#fafafe;border-radius:10px;padding:9px}.hc10-review small,.hc10-review b{display:block}.hc10-review small{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#9194a2}.hc10-review b{font-size:10px;margin-top:3px;color:#303247;overflow-wrap:anywhere}.hc10-safety{margin-top:12px;border:1px solid #f0dfae;background:#fffaf0;color:#735d22;border-radius:12px;padding:10px 11px;font-size:9px;line-height:1.5}
+  @media(max-width:760px){.hc10-head{display:block}.hc10-trust{margin-top:10px}.hc10-steps{grid-template-columns:1fr 1fr}.hc10-loc-search{grid-template-columns:1fr}.hc10-loc-search button{min-height:42px}.hc10-ready-grid,.hc10-review{grid-template-columns:1fr 1fr}}
+  @media(max-width:470px){.hc10-steps,.hc10-ready-grid,.hc10-review{grid-template-columns:1fr}}
+  `;document.head.appendChild(s)
+}
+
+function insertCommandCard(){
+  if(document.querySelector('.hc10-shell'))return;
+  const main=document.querySelector('.booking-grid')?.parentElement||document.querySelector('main');
+  if(!main)return;
+  const box=document.createElement('section');box.className='hc10-shell';
+  const type=bookingType(),isBnb=type==='bnb';
+  box.innerHTML='<div class="hc10-head"><div><div class="hc10-kicker">'+(isBnb?'Accommodation booking':'Date & experience booking')+'</div><h2>'+(isBnb?'Advanced BnB reservation':'Advanced experience booking')+'</h2><p>'+(isBnb?'Choose the stay, precise locality, guest details and verification information before provider review.':'Build a clear date or experience request with location, timing and provider confirmation before payment.')+'</p></div><div class="hc10-trust"><span>Provider-confirmed</span><span>No fake availability</span><span>Secure payment flow</span>'+(isBnb?'<span>Identity review</span>':'')+'</div></div><div class="hc10-steps"><div class="hc10-step" data-hc10-step="stay"><b>1. '+(isBnb?'Stay':'Plan')+'</b><small>'+(isBnb?'Dates & budget':'Date & tier')+'</small></div><div class="hc10-step" data-hc10-step="location"><b>2. Location</b><small>Country, locality & area</small></div><div class="hc10-step" data-hc10-step="guest"><b>3. Guest</b><small>Contact details</small></div><div class="hc10-step" data-hc10-step="verify"><b>4. '+(isBnb?'Verify ID':'Review')+'</b><small>'+(isBnb?'Document status':'Request details')+'</small></div><div class="hc10-step" data-hc10-step="pay"><b>5. Pay</b><small>After approval only</small></div></div>';
+  const grid=document.querySelector('.booking-grid');grid?.parentElement?.insertBefore(box,grid);if(!grid)main.prepend(box)
+}
+
+function enhanceLocation(){
+  if(document.querySelector('.hc10-location'))return;
+  const country=field('Country'),locality=field('City / town','City/town','Locality','City','Destination'),region=field('Region','County / state','State / province'),area=field('Area','Neighbourhood','Neighborhood');
+  if(!country&&!locality)return;
+  const anchor=(country?.closest('label')||locality?.closest('label'));if(!anchor?.parentElement)return;
+  const wrap=document.createElement('section');wrap.className='hc10-location';
+  wrap.innerHTML='<div class="hc10-location-head"><div><h3>📍 Choose locality</h3><p>Search a city, town, neighbourhood or area. We save the booking location fields, not an exact home GPS position.</p></div></div><div class="hc10-loc-search"><input id="hc10Place" autocomplete="off" placeholder="Search e.g. Kisii, Westlands, Nairobi, Mombasa"><button type="button" id="hc10Search">Search location</button></div><div class="hc10-results" id="hc10Results"></div><div class="hc10-selected" id="hc10Selected" hidden></div><div class="hc10-loc-note">You can still use the normal Country / Region / City / Area fields below if preferred.</div>';
+  anchor.parentElement.insertBefore(wrap,anchor);
+  const input=wrap.querySelector('#hc10Place'),btn=wrap.querySelector('#hc10Search'),results=wrap.querySelector('#hc10Results'),selected=wrap.querySelector('#hc10Selected');
+  async function search(){
+    const term=input.value.trim();if(term.length<2){results.innerHTML='<div class="hc10-loc-note">Type at least 2 characters.</div>';return}
+    btn.disabled=true;btn.textContent='Searching…';results.innerHTML='';
+    try{
+      const r=await fetch('/_hc/booking-location-search?q='+encodeURIComponent(term),{headers:{accept:'application/json'}});
+      const d=await r.json();if(!r.ok)throw new Error(d.error||'Location search unavailable.');
+      results.innerHTML=d.items?.length?d.items.map((x,i)=>'<button class="hc10-result" type="button" data-i="'+i+'"><b>'+esc(x.name||x.locality||x.fullName)+'</b><small>'+esc(x.fullName||[x.area,x.locality,x.region,x.country].filter(Boolean).join(', '))+'</small></button>').join(''):'<div class="hc10-loc-note">No matching places found.</div>';
+      results.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const x=d.items[Number(b.dataset.i)];if(!x)return;setValue(country,x.country||country?.value||'');setValue(region,x.region||region?.value||'');setValue(locality,x.locality||x.name||'');setValue(area,x.area||'');selected.hidden=false;selected.textContent='Selected: '+(x.fullName||[x.area,x.locality,x.region,x.country].filter(Boolean).join(', '));results.innerHTML='';update()})
+    }catch(e){results.innerHTML='<div class="hc10-loc-note">'+esc(e.message)+'</div>'}finally{btn.disabled=false;btn.textContent='Search location'}
+  }
+  btn.onclick=search;input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();search()}});
+}
+
+function enhanceProperty(){
+  if(bookingType()!=='bnb'||document.querySelector('.hc10-property'))return;
+  const p=field('Property type','Accommodation type','Stay type');if(!p)return;
+  const label=p.closest('label');if(!label?.parentElement)return;
+  const box=document.createElement('section');box.className='hc10-property';box.innerHTML='<b>Stay preference</b><p>Quick-select the kind of accommodation you prefer. Final property availability is confirmed by the provider.</p><div class="hc10-property-options">'+['BnB / Apartment','Guest House','Hotel-style room','Studio','Private room','Any suitable stay'].map(x=>'<button type="button" data-v="'+esc(x)+'">'+esc(x)+'</button>').join('')+'</div>';label.parentElement.insertBefore(box,label);
+  box.querySelectorAll('button').forEach(b=>b.onclick=()=>{setValue(p,b.dataset.v);box.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));update()})
+}
+
+function update(){
+  const type=bookingType(),isBnb=type==='bnb';
+  const ci=field('Check-in'),co=field('Check-out'),rate=field('Preferred nightly rate','Nightly budget / preferred rate'),date=field('Preferred date');
+  const country=field('Country'),locality=field('City / town','City/town','Locality','City','Destination');
+  const name=field('Full name as shown on ID/passport','Full name','Guest name'),email=field('Email'),phone=field('Phone'),nationality=field('Nationality');
+  const doc=field('Identity document','Document type','Upload ID','Verification document');
+  const nn=isBnb?nights(ci?.value,co?.value):0,rr=Number(rate?.value||0);
+  const stayOk=isBnb?(nn>=1&&nn<=60&&rr>=2500&&rr<=10000):!!date?.value;
+  const locOk=!!country?.value&&!!locality?.value;
+  const guestOk=!!name?.value&&!!email?.value&&!!phone?.value&&(isBnb?!!nationality?.value:true);
+  const verifyOk=isBnb?!!(doc?.value||document.querySelector('input[type=file]')?.files?.length):true;
+  const payOk=false;
+  const states={stay:stayOk,location:locOk,guest:guestOk,verify:verifyOk,pay:payOk};
+  Object.entries(states).forEach(([k,v])=>document.querySelector('[data-hc10-step="'+k+'"]')?.classList.toggle('ready',!!v));
+  let panel=document.querySelector('.hc10-ready');
+  const grid=document.querySelector('.booking-grid');
+  if(!panel&&grid){panel=document.createElement('section');panel.className='hc10-ready';grid.parentElement?.insertBefore(panel,grid.nextSibling)}
+  if(panel){
+    const checks=[['Dates & '+(isBnb?'nightly budget':'service plan'),stayOk],['Location & locality',locOk],['Guest/contact details',guestOk],[(isBnb?'Identity document':'Request details'),verifyOk]];
+    const score=checks.filter(x=>x[1]).length;
+    panel.innerHTML='<div class="hc10-ready-head"><h3>Booking readiness</h3><span class="hc10-score">'+score+' / '+checks.length+' ready</span></div><div class="hc10-ready-grid">'+checks.map(x=>'<div class="hc10-check '+(x[1]?'ok':'')+'">'+esc(x[0])+'</div>').join('')+'</div><div class="hc10-review"><div><small>Location</small><b>'+esc([field('Area')?.value,locality?.value,field('Region')?.value,country?.value].filter(Boolean).join(', ')||'Not selected')+'</b></div><div><small>'+(isBnb?'Stay':'Preferred date')+'</small><b>'+(isBnb?(nn?nn+' night'+(nn===1?'':'s'):'Not set'):esc(date?.value||'Not set'))+'</b></div><div><small>'+(isBnb?'Requested total':'Service')+'</small><b>'+(isBnb&&nn&&rr?money(nn*rr):'Calculated after selection')+'</b></div><div><small>Payment</small><b>After provider approval</b></div></div><div class="hc10-safety"><b>Booking safety:</b> room inventory, provider/venue, final price and cancellation terms must be confirmed before the reservation is treated as booked. Payment is not presented as successful until the payment provider confirms it.</div>';
+  }
+}
+
+function bind(){
+  document.querySelectorAll('input,select,textarea').forEach(el=>{if(el.dataset.hc10Bound)return;el.dataset.hc10Bound='1';el.addEventListener('input',update);el.addEventListener('change',update)})
+}
+function enhance(){style();insertCommandCard();enhanceLocation();enhanceProperty();bind();update()}
+new MutationObserver(()=>setTimeout(enhance,30)).observe(document.documentElement,{childList:true,subtree:true});
+addEventListener('DOMContentLoaded',enhance);enhance();
+})();

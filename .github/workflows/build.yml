@@ -2,28 +2,73 @@ name: Build Verification
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, security-stabilization-2026-09-10]
   pull_request:
     branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Scan for committed high-risk secrets
+        shell: bash
+        run: |
+          if grep -RInE --exclude-dir=.git --exclude-dir=node_modules --exclude='*.md' '(sk_live_[A-Za-z0-9]{16,}|sk_test_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' .; then
+            echo 'Potential committed secret detected.'
+            exit 1
+          fi
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
       - name: Add AppDeploy CI shim
         run: |
           mkdir -p node_modules/@appdeploy/client
-          printf '%s\n' '{"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js"}' > node_modules/@appdeploy/client/package.json
-          printf '%s\n' 'export const auth = {};' 'export const api = {};' 'export const ws = {};' > node_modules/@appdeploy/client/index.js
+          cat > node_modules/@appdeploy/client/package.json <<'EOF'
+          {"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js","types":"./index.d.ts"}
+          EOF
+          cat > node_modules/@appdeploy/client/index.js <<'EOF'
+          export const auth = {};
+          export const api = {};
+          export const ws = {};
+          EOF
+          cat > node_modules/@appdeploy/client/index.d.ts <<'EOF'
+          export type ApiResponse<T = any> = { data: T };
+          export interface ApiClient {
+            get<T = any>(path: string): Promise<ApiResponse<T>>;
+            post<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
+            put<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
+            delete<T = any>(path: string): Promise<ApiResponse<T>>;
+          }
+          export interface AuthClient {
+            getUser(): Promise<any>;
+            signIn(...args: any[]): Promise<any>;
+            signOut(...args: any[]): Promise<any>;
+          }
+          export interface WsConnection {
+            connectionId?: string;
+            ready: Promise<void>;
+            onMessage(cb: (message: any) => void): void;
+            onError(cb: (error: any) => void): void;
+            onClose(cb: () => void): void;
+            disconnect(): void;
+          }
+          export const api: ApiClient;
+          export const auth: AuthClient;
+          export const ws: { connect(...args: any[]): WsConnection };
+          EOF
+      - name: TypeScript
+        run: npm run typecheck
       - name: Build
         run: npm run build
       - name: Validate Cloudflare Worker

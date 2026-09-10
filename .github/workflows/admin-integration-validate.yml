@@ -1,0 +1,356 @@
+name: Security + Admin Integration Validation
+
+on:
+  push:
+    branches: [integration-security-admin-2026-09-10, admin-final-polish-2026-09-10]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout integration candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact security checkpoint ancestry and integration footprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          SECURITY_CHECKPOINT="d691c1e45a7699c1b9066e471ae09c3066a6866a"
+          git merge-base --is-ancestor "$SECURITY_CHECKPOINT" HEAD
+          git diff --name-only "$SECURITY_CHECKPOINT"..HEAD > /tmp/integration-files.txt
+          echo "Integration-only changes since the approved security checkpoint:"
+          cat /tmp/integration-files.txt
+          BAD="$(grep -Ev '^(\.github/workflows/admin-integration-validate\.yml|cloudflare/admin-[^/]+\.js|cloudflare/booking-advanced-v10\.txt|cloudflare/worker-admin-v7\.js|supabase/migrations/[0-9]+_admin_[^/]+\.sql|docs/admin-[^/]+\.md|wrangler\.router\.jsonc)$' /tmp/integration-files.txt || true)"
+          if [ -n "$BAD" ]; then
+            echo "Unexpected security-owned files changed during integration:"
+            echo "$BAD"
+            exit 1
+          fi
+          grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v36.js';" cloudflare/worker-admin-v7.js
+          grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
+          grep -Fq '"keep_vars": true' wrangler.router.jsonc
+          grep -Fq '"binding": "AI"' wrangler.router.jsonc
+          grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Scan for committed high-risk secrets
+        shell: bash
+        run: |
+          if grep -RInE --exclude-dir=.git --exclude-dir=node_modules --exclude='*.md' '(sk_live_[A-Za-z0-9]{16,}|sk_test_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' .; then
+            echo 'Potential committed secret detected.'
+            exit 1
+          fi
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Add AppDeploy CI shim
+        run: |
+          mkdir -p node_modules/@appdeploy/client
+          cat > node_modules/@appdeploy/client/package.json <<'EOF'
+          {"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js","types":"./index.d.ts"}
+          EOF
+          cat > node_modules/@appdeploy/client/index.js <<'EOF'
+          export const auth = {};
+          export const api = {};
+          export const ws = {};
+          EOF
+          cat > node_modules/@appdeploy/client/index.d.ts <<'EOF'
+          export type ApiResponse<T = any> = { data: T };
+          export interface ApiClient {
+            get<T = any>(path: string): Promise<ApiResponse<T>>;
+            post<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
+            put<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
+            delete<T = any>(path: string): Promise<ApiResponse<T>>;
+          }
+          export interface AuthClient {
+            getUser(): Promise<any>;
+            signIn(...args: any[]): Promise<any>;
+            signOut(...args: any[]): Promise<any>;
+          }
+          export interface WsConnection {
+            connectionId?: string;
+            ready: Promise<void>;
+            onMessage(cb: (message: any) => void): void;
+            onError(cb: (error: any) => void): void;
+            onClose(cb: () => void): void;
+            disconnect(): void;
+          }
+          export const api: ApiClient;
+          export const auth: AuthClient;
+          export const ws: { connect(...args: any[]): WsConnection };
+          EOF
+
+      - name: Validate security and admin JavaScript modules
+        run: |
+          node --check cloudflare/worker-v15.js
+          node --check cloudflare/worker-admin-v7.js
+          node --check cloudflare/admin-api-v1.js
+          node --check cloudflare/admin-api-v2.js
+          node --check cloudflare/admin-api-v2-guard.js
+          node --check cloudflare/admin-api-v3.js
+          node --check cloudflare/admin-api-v4.js
+          node --check cloudflare/admin-api-v5.js
+          node --check cloudflare/admin-api-v6.js
+          node --check cloudflare/admin-api-v7.js
+          node --check cloudflare/admin-api-v8.js
+          node --check cloudflare/admin-api-v9.js
+          node --check cloudflare/admin-api-v10.js
+          node --check cloudflare/admin-api-v11.js
+          node --check cloudflare/admin-api-v12.js
+          node --check cloudflare/admin-api-v13.js
+          node --check cloudflare/admin-api-v14.js
+          node --check cloudflare/admin-api-v15.js
+          node --check cloudflare/admin-api-v16.js
+          node --check cloudflare/admin-api-v17.js
+          node --check cloudflare/admin-api-v18.js
+          node --check cloudflare/admin-api-v19.js
+          node --check cloudflare/admin-api-v20.js
+          node --check cloudflare/admin-api-v21.js
+          node --check cloudflare/admin-api-v22.js
+          node --check cloudflare/admin-api-v23.js
+          node --check cloudflare/admin-api-v24.js
+          node --check cloudflare/admin-api-v25.js
+          node --check cloudflare/admin-api-v26.js
+          node --check cloudflare/admin-api-v27.js
+          node --check cloudflare/admin-api-v28.js
+          node --check cloudflare/admin-api-v29.js
+          node --check cloudflare/admin-api-v30.js
+          node --check cloudflare/admin-api-v31.js
+          node --check cloudflare/admin-api-v32.js
+          node --check cloudflare/admin-api-v33.js
+          node --check cloudflare/admin-api-v34.js
+          node --check cloudflare/admin-api-v35.js
+          node --check cloudflare/admin-api-v36.js
+          node --check cloudflare/admin-login-v2.js
+          node --check cloudflare/admin-ui-v3.js
+          node --check cloudflare/admin-ui-v4.js
+          node --check cloudflare/admin-ui-v5.js
+          node --check cloudflare/admin-ui-v6.js
+          node --check cloudflare/admin-ui-v7.js
+          node --check cloudflare/admin-ui-v8.js
+          node --check cloudflare/admin-ui-v9.js
+          node --check cloudflare/admin-ui-v10.js
+          node --check cloudflare/admin-ui-v11.js
+          node --check cloudflare/admin-ui-v12.js
+          node --check cloudflare/admin-ui-v13.js
+          node --check cloudflare/admin-ui-v14.js
+          node --check cloudflare/admin-ui-v15.js
+          node --check cloudflare/admin-ui-v16.js
+          node --check cloudflare/admin-ui-v17.js
+          node --check cloudflare/admin-ui-v18.js
+          node --check cloudflare/admin-ui-v19.js
+          node --check cloudflare/admin-ui-v20.js
+          node --check cloudflare/admin-ui-v21.js
+          node --check cloudflare/admin-ui-v22.js
+          node --check cloudflare/admin-ui-v23.js
+          node --check cloudflare/admin-ui-v24.js
+          node --check cloudflare/admin-ui-v25.js
+          node --check cloudflare/admin-ui-v26.js
+          node --check cloudflare/admin-ui-v27.js
+          node --check cloudflare/admin-ui-v28.js
+          node --check cloudflare/admin-ui-v29.js
+          node --check cloudflare/admin-ui-v30.js
+          node --check cloudflare/admin-ui-v31.js
+          node --check cloudflare/admin-ui-v32.js
+          node --check cloudflare/admin-ui-v33.js
+          node --check cloudflare/admin-ui-v34.js
+          node --check cloudflare/admin-ui-v35.js
+          node --check cloudflare/admin-ui-v36.js
+          cp cloudflare/booking-advanced-v10.txt /tmp/booking-advanced-v10.js
+          node --check /tmp/booking-advanced-v10.js
+          node --check cloudflare/admin-html-client-check.js
+          node cloudflare/admin-html-client-check.js
+
+      - name: Validate Admin safety, polish and reconciliation bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "aiExecutesHighImpactActions:false" cloudflare/admin-api-v5.js
+          grep -Fq "requiredLaunchChecksCannotBeWaived:true" cloudflare/admin-api-v6.js
+          grep -Fq "privateMessagesNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v9.js
+          grep -Fq "cannot deactivate or change your own current admin role" cloudflare/admin-api-v9.js
+          grep -Fq "permissions-policy" cloudflare/admin-api-v36.js
+          grep -Fq "strict-transport-security" cloudflare/admin-api-v36.js
+          grep -Fq "admin.user.onboard_existing" cloudflare/admin-api-v16.js
+          grep -Fq "At least one approved profile photo is required" cloudflare/admin-api-v16.js
+          grep -Fq "moderation_status:'pending'" cloudflare/admin-api-v16.js
+          grep -Fq "Never execute actions" cloudflare/admin-api-v16.js
+          grep -Fq "admin.user.location_update" cloudflare/admin-api-v17.js
+          grep -Fq "exactCoordinatesStored:false" cloudflare/admin-api-v17.js
+          grep -Fq "discovery_preferences" cloudflare/admin-api-v17.js
+          grep -Fq "countriesnow.space" cloudflare/admin-api-v19.js
+          grep -Fq "/api/admin/locations/countries" cloudflare/admin-api-v19.js
+          grep -Fq "/api/admin/locations/cities" cloudflare/admin-api-v19.js
+          grep -Fq "Sign out" cloudflare/admin-ui-v9.js
+          grep -Fq "Ctrl/⌘ + K" cloudflare/admin-ui-v10.js
+          grep -Fq "+ Add Staff Member" cloudflare/admin-ui-v8.js
+          grep -Fq "Media & HTML sections" cloudflare/admin-ui-v15.js
+          grep -Fq "+ Add User" cloudflare/admin-ui-v16.js
+          grep -Fq "Profile editor" cloudflare/admin-ui-v16.js
+          grep -Fq "Discover visibility" cloudflare/admin-ui-v16.js
+          grep -Fq "Upload profile photo" cloudflare/admin-ui-v16.js
+          grep -Fq "Upload profile video" cloudflare/admin-ui-v16.js
+          grep -Fq "AI admin assistant" cloudflare/admin-ui-v16.js
+          grep -Fq "Back to Users" cloudflare/admin-ui-v16.js
+          grep -Fq "Location & discovery" cloudflare/admin-ui-v17.js
+          grep -Fq "Save location" cloudflare/admin-ui-v17.js
+          grep -Fq "Heart Connect Admin AI" cloudflare/admin-ui-v18.js
+          grep -Fq "Profile photos" cloudflare/admin-ui-v19.js
+          grep -Fq "hc19AddPhotos" cloudflare/admin-ui-v19.js
+          grep -Fq "Select country / region" cloudflare/admin-ui-v19.js
+          grep -Fq "Choose country first" cloudflare/admin-ui-v19.js
+          grep -Fq "Admin-assisted onboarding profile photo" cloudflare/admin-ui-v19.js
+          grep -Fq "Mapbox place picker" cloudflare/admin-ui-v20.js
+          grep -Fq "Search Mapbox" cloudflare/admin-ui-v20.js
+          grep -Fq "Select gender" cloudflare/admin-ui-v20.js
+          grep -Fq "hc16AddGender" cloudflare/admin-ui-v20.js
+          grep -Fq "hc16Gender" cloudflare/admin-ui-v20.js
+          grep -Fq "MAPBOX_PUBLIC_TOKEN" cloudflare/admin-api-v20.js
+          grep -Fq "search/geocode/v6/forward" cloudflare/admin-api-v20.js
+          grep -Fq "search/geocode/v6/reverse" cloudflare/admin-api-v20.js
+          grep -Fq "storesExactCoordinates:false" cloudflare/admin-api-v20.js
+          grep -Fq "📍 Nearby" cloudflare/admin-ui-v21.js
+          grep -Fq "🌍 Global" cloudflare/admin-ui-v21.js
+          grep -Fq "Maximum distance" cloudflare/admin-ui-v21.js
+          grep -Fq "Choose from country and city lists instead" cloudflare/admin-ui-v21.js
+          grep -Fq "Member location" cloudflare/admin-ui-v21.js
+          grep -Fq "Choose interests" cloudflare/admin-ui-v22.js
+          grep -Fq "Multiple selections are allowed" cloudflare/admin-ui-v22.js
+          grep -Fq "hc16AddInterests" cloudflare/admin-ui-v22.js
+          grep -Fq "hc16Interests" cloudflare/admin-ui-v22.js
+          grep -Fq "Heart Connect control center" cloudflare/admin-ui-v23.js
+          grep -Fq "Needs your attention" cloudflare/admin-ui-v23.js
+          grep -Fq "Platform operations" cloudflare/admin-ui-v23.js
+          grep -Fq "Launch readiness" cloudflare/admin-ui-v23.js
+          grep -Fq "AI management brief" cloudflare/admin-ui-v23.js
+          grep -Fq "Production remains controlled by explicit launch approval" cloudflare/admin-ui-v23.js
+          grep -Fq "hc24-overview" cloudflare/admin-ui-v24.js
+          grep -Fq "Needs your attention" cloudflare/admin-ui-v24.js
+          grep -Fq "Platform operations" cloudflare/admin-ui-v24.js
+          grep -Fq "Launch readiness" cloudflare/admin-ui-v24.js
+          grep -Fq "AI management brief" cloudflare/admin-ui-v24.js
+          grep -Fq "Platform Analytics" cloudflare/admin-ui-v25.js
+          grep -Fq "Privacy-safe analytics" cloudflare/admin-ui-v25.js
+          grep -Fq "Platform activity" cloudflare/admin-ui-v25.js
+          grep -Fq "Operational activity" cloudflare/admin-ui-v25.js
+          grep -Fq "/api/admin/reports/summary?days=" cloudflare/admin-ui-v25.js
+          grep -Fq "Advanced Platform Analytics" cloudflare/admin-ui-v26.js
+          grep -Fq "Period-over-period growth" cloudflare/admin-ui-v26.js
+          grep -Fq "Engagement & trust ratios" cloudflare/admin-ui-v26.js
+          grep -Fq "Operations pulse" cloudflare/admin-ui-v26.js
+          grep -Fq "AI analytics analyst" cloudflare/admin-ui-v26.js
+          grep -Fq "No private message content or identity evidence is exposed" cloudflare/admin-ui-v26.js
+          grep -Fq "Advanced Moderation" cloudflare/admin-ui-v27.js
+          grep -Fq "Trust & safety command center" cloudflare/admin-ui-v27.js
+          grep -Fq "AI moderation assistant" cloudflare/admin-ui-v27.js
+          grep -Fq "report resolution does not automatically suspend" cloudflare/admin-ui-v27.js
+          grep -Fq "Advanced BnB reservation" cloudflare/booking-advanced-v10.txt
+          grep -Fq "Booking readiness" cloudflare/booking-advanced-v10.txt
+          grep -Fq "Choose locality" cloudflare/booking-advanced-v10.txt
+          grep -Fq "payment provider confirms it" cloudflare/booking-advanced-v10.txt
+          grep -Fq "BOOKING_LOCATION_SEARCH" cloudflare/worker-admin-v7.js
+          grep -Fq "MAPBOX_PUBLIC_TOKEN" cloudflare/worker-admin-v7.js
+          grep -Fq "storesExactCoordinates:false" cloudflare/worker-admin-v7.js
+          grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV16(request,env);" cloudflare/admin-api-v17.js
+          grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV18(request,env);" cloudflare/admin-api-v19.js
+          grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV19(request,env);" cloudflare/admin-api-v20.js
+          grep -Fq "/api/admin/ai/operations" cloudflare/admin-ui-v27.js
+          grep -Fq "Advanced Verification Center" cloudflare/admin-ui-v28.js
+          grep -Fq "Member Verification" cloudflare/admin-ui-v28.js
+          grep -Fq "BnB & Booking Verification" cloudflare/admin-ui-v28.js
+          grep -Fq "Short-lived evidence access" cloudflare/admin-ui-v28.js
+          grep -Fq "Evidence links expire" cloudflare/admin-ui-v28.js || true
+          grep -Fq "AI verification assistant" cloudflare/admin-ui-v28.js
+          grep -Fq "Native Admin connector still required for booking documents" cloudflare/admin-ui-v28.js
+          grep -Fq "verification_summary" cloudflare/admin-ui-v28.js
+          grep -Fq "Advanced Payment Operations" cloudflare/admin-ui-v29.js
+          grep -Fq "Transaction ledger" cloudflare/admin-ui-v29.js
+          grep -Fq "Provider distribution" cloudflare/admin-ui-v29.js
+          grep -Fq "AI payment analyst" cloudflare/admin-ui-v29.js
+          grep -Fq "Payment sources" cloudflare/admin-ui-v29.js
+          grep -Fq "cannot manually mark a transaction paid" cloudflare/admin-ui-v29.js
+          grep -Fq "payment_summary" cloudflare/admin-ui-v29.js
+          grep -Fq "Advanced Market Control" cloudflare/admin-ui-v30.js
+          grep -Fq "Market registry" cloudflare/admin-ui-v30.js
+          grep -Fq "Rollout readiness" cloudflare/admin-ui-v30.js
+          grep -Fq "Safe rollout order" cloudflare/admin-ui-v30.js
+          grep -Fq "+ Add market" cloudflare/admin-ui-v30.js
+          test -f supabase/migrations/20260910231000_admin_market_catalog_seed.sql
+          grep -Fq "Advanced Content Studio" cloudflare/admin-ui-v31.js
+          grep -Fq "Editorial posts" cloudflare/admin-ui-v31.js
+          grep -Fq "Media library" cloudflare/admin-ui-v31.js
+          grep -Fq "AI writing assistant" cloudflare/admin-ui-v31.js
+          grep -Fq "Check publishing readiness" cloudflare/admin-ui-v31.js
+          grep -Fq "revision snapshot" cloudflare/admin-ui-v31.js
+          grep -Fq "Featured image / cover" cloudflare/admin-ui-v32.js
+          grep -Fq "Visual editor" cloudflare/admin-ui-v32.js
+          grep -Fq "Search preview" cloudflare/admin-ui-v32.js
+          grep -Fq "Save draft" cloudflare/admin-ui-v32.js
+          grep -Fq "Schedule post" cloudflare/admin-ui-v32.js
+          grep -Fq "Publish now" cloudflare/admin-ui-v32.js
+          grep -Fq "Autosave ready" cloudflare/admin-ui-v32.js
+          grep -Fq "featuredMediaId" cloudflare/admin-ui-v32.js
+          grep -Fq "category" cloudflare/admin-api-v2.js
+          grep -Fq "featured_media_id:featuredMediaId" cloudflare/admin-api-v2.js
+          test -f supabase/migrations/20260910234000_admin_cms_editorial_metadata.sql
+          grep -Fq "Advanced Page Manager" cloudflare/admin-ui-v33.js
+          grep -Fq "Page registry" cloudflare/admin-ui-v33.js
+          grep -Fq "Page templates" cloudflare/admin-ui-v33.js
+          grep -Fq "Publishing boundary" cloudflare/admin-ui-v33.js
+          grep -Fq "PUBLISH LEGAL" cloudflare/admin-ui-v33.js
+          grep -Fq "hc_site_page_revisions" cloudflare/admin-api-v3.js
+          grep -Fq "PUBLISH LEGAL" cloudflare/admin-api-v3.js
+          test -f supabase/migrations/20260910235500_admin_site_page_foundation.sql
+          grep -Fq "Page media upload" cloudflare/admin-ui-v34.js
+          grep -Fq "Upload & add to page" cloudflare/admin-ui-v34.js
+          grep -Fq "Choose from media library" cloudflare/admin-ui-v34.js
+          grep -Fq "secure CMS storage" cloudflare/admin-ui-v34.js
+          grep -Fq "grid-template-columns:repeat(2" cloudflare/admin-ui-v35.js
+          grep -Fq "border:2px solid #3b82f6" cloudflare/admin-ui-v35.js
+          grep -Fq "content:'Choose'" cloudflare/admin-ui-v35.js
+          grep -Fq "Notification Control Center" cloudflare/admin-ui-v36.js
+          grep -Fq "Campaign registry" cloudflare/admin-ui-v36.js
+          grep -Fq "Process queued batch" cloudflare/admin-ui-v36.js
+          grep -Fq "Generate AI draft" cloudflare/admin-ui-v36.js
+          grep -Fq "Native in-app only" cloudflare/admin-ui-v36.js
+          test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
+          test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
+          BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
+          test -f "$BRIDGE"
+          grep -Fq "public.account_enforcements" "$BRIDGE"
+          grep -Fq "admin_control_plane_" "$BRIDGE"
+          grep -Fq "member_discoverable_before_enforcement" "$BRIDGE"
+          grep -Fq "notifications_campaign_id_fkey" "$BRIDGE"
+          grep -Fq "notifications_delivery_id_fkey" "$BRIDGE"
+          STAFF_LOOKUP=supabase/migrations/20260910130000_admin_staff_email_resolution.sql
+          test -f "$STAFF_LOOKUP"
+          grep -Fq "grant execute on function public.hc_admin_resolve_auth_user_by_email(text) to service_role" "$STAFF_LOOKUP"
+          grep -Fq "revoke all on function public.hc_admin_resolve_auth_user_by_email(text) from authenticated" "$STAFF_LOOKUP"
+          test -f supabase/migrations/20260910131500_admin_final_live_indexes.sql
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate combined Cloudflare Worker without deploying
+        run: npx wrangler deploy --dry-run --config wrangler.router.jsonc

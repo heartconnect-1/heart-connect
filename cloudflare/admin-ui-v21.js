@@ -1,0 +1,50 @@
+import {adminHtml as adminHtmlV20} from './admin-ui-v20.js';
+
+export function adminHtml(version){
+  const upgrade=`<style>
+.hc21-location-shell{border:1px solid #ffffff14;background:linear-gradient(180deg,#10151f,#080c12);border-radius:22px;padding:16px;margin:14px 0;box-shadow:0 18px 55px #0005;overflow:hidden}.hc21-location-hero{position:relative;display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid #ff445833;background:linear-gradient(135deg,#ff445818,#ff603618 48%,#8b5cff16);border-radius:18px;padding:16px;margin-bottom:12px}.hc21-pin{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#ff4458,#ff6036);box-shadow:0 10px 28px #ff44583d;font-size:23px;flex:0 0 auto}.hc21-hero-copy{min-width:0;flex:1}.hc21-eyebrow{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#ff93a2;font-weight:900}.hc21-place{font-size:20px;font-weight:900;color:#fff;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hc21-sub{font-size:11px;color:#9aa6b6;margin-top:3px;line-height:1.45}.hc21-change{border:1px solid #ffffff1a;background:#ffffff0b;color:#fff;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800;cursor:pointer}.hc21-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;background:#060a10;border:1px solid #ffffff10;border-radius:15px;padding:5px;margin:12px 0}.hc21-tab{border:0;background:transparent;color:#8e9bad;border-radius:11px;padding:10px 12px;font-weight:800;cursor:pointer}.hc21-tab.active{background:linear-gradient(135deg,#ff4458,#ff6036);color:#fff;box-shadow:0 8px 24px #ff44582e}.hc21-mode-copy{font-size:11px;color:#8491a3;line-height:1.45;margin:-3px 2px 12px}.hc21-radius{border:1px solid #ffffff10;background:#0a0f16;border-radius:14px;padding:12px;margin:10px 0}.hc21-radius-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.hc21-radius-head b{font-size:12px}.hc21-radius-value{font-size:12px;font-weight:900;color:#ff8d9b}.hc21-radius input[type=range]{width:100%;accent-color:#ff4458;margin-top:10px}.hc21-radius-scale{display:flex;justify-content:space-between;color:#687689;font-size:9px}.hc21-mapbox-wrap{border-radius:18px;overflow:hidden}.hc21-mapbox-wrap .hc20-mapbox{margin:0;border:1px solid #ffffff12;background:#090e15;border-radius:18px}.hc21-mapbox-wrap .hc20-map{height:310px;border-radius:16px}.hc21-mapbox-wrap .hc20-search{font-size:14px}.hc21-mapbox-wrap .hc20-search-btn{background:linear-gradient(135deg,#ff4458,#ff6036);border-color:transparent;font-weight:900}.hc21-fallback{margin-top:10px;border:1px solid #ffffff10;background:#080c12;border-radius:12px;padding:0 10px}.hc21-fallback summary{cursor:pointer;padding:10px 0;font-size:11px;font-weight:800;color:#aab5c4}.hc21-fallback-body{padding:0 0 10px}.hc21-location-shell .hc17-location-head{display:none}.hc21-location-shell>.hc17-location-grid{display:none}.hc21-location-shell>.hc17-help:not(.hc21-keep){display:none}.hc21-location-shell .hc17-location-badge{display:none}.hc21-global-note{border:1px solid #7e66ff2d;background:#7e66ff10;border-radius:13px;padding:11px;color:#aeb8c9;font-size:11px;line-height:1.5;margin:10px 0}.hc21-country-select{margin-top:10px}.hc21-country-select label span{font-size:11px;color:#9ca9b9}.hc21-country-select select{width:100%;min-height:110px;margin-top:5px}.hc21-location-shell .hc17-actions{margin-top:12px}.hc21-location-shell .hc17-actions .btn{border-radius:999px}.hc21-mapbox-wrap .mapboxgl-ctrl-group{border-radius:12px!important;overflow:hidden}
+@media(max-width:650px){.hc21-location-hero{align-items:flex-start}.hc21-change{font-size:10px;padding:7px 9px}.hc21-place{font-size:17px}.hc21-mapbox-wrap .hc20-map{height:260px}}
+</style><script>
+(()=>{
+  function val(id){return document.getElementById(id)?.value||''}
+  function ids(scope){return scope==='add'?{loc:'hc17AddLocation',map:'hc20AddMap',country:'hc16AddCountry',city:'hc16AddCity',mode:'hc17Mode',radius:'hc17Radius',countries:'hc17Countries',shell:'hc21AddShell',place:'hc21AddPlace',tabs:'hc21AddTabs',range:'hc21AddRange',rangeVal:'hc21AddRangeValue',fallback:'hc21AddFallback'}:{loc:'hc17ManageLocation',map:'hc20ManageMap',country:'hc17Country',city:'hc17City',mode:'hc17ManageMode',radius:'hc17ManageRadius',countries:'hc17ManageCountries',shell:'hc21ManageShell',place:'hc21ManagePlace',tabs:'hc21ManageTabs',range:'hc21ManageRange',rangeVal:'hc21ManageRangeValue',fallback:'hc21ManageFallback'}}
+  function placeLabel(scope){const x=ids(scope),city=val(x.city),country=val(x.country);return [city,country].filter(Boolean).join(', ')||'Choose a location'}
+  function setMode(scope,mode){const x=ids(scope),el=document.getElementById(x.mode);if(el){el.value=mode;el.dispatchEvent(new Event('change',{bubbles:true}))}sync(scope)}
+  function sync(scope){
+    const x=ids(scope),shell=document.getElementById(x.shell);if(!shell)return;
+    const place=document.getElementById(x.place);if(place)place.textContent=placeLabel(scope);
+    const mode=val(x.mode)==='local'?'local':'global';
+    shell.querySelectorAll('[data-hc21-mode]').forEach(b=>b.classList.toggle('active',b.dataset.hc21Mode===mode));
+    const radius=document.getElementById(x.radius),range=document.getElementById(x.range),out=document.getElementById(x.rangeVal),radiusBox=shell.querySelector('.hc21-radius');
+    if(range&&radius){let n=Number(radius.value||range.value||50);if(!Number.isFinite(n))n=50;n=Math.max(5,Math.min(500,n));range.value=n;if(!radius.value)radius.value=n;if(out)out.textContent=n+' km'}
+    if(radiusBox)radiusBox.style.display=mode==='local'?'block':'none';
+    const countryBox=shell.querySelector('.hc21-country-select');if(countryBox)countryBox.style.display=mode==='local'?'block':'none';
+    const note=shell.querySelector('.hc21-mode-copy');if(note)note.textContent=mode==='global'?'Global discovery can show eligible profiles across countries.':'Nearby discovery uses this member’s selected city/country, distance and preferred countries.';
+  }
+  function fallbackFields(scope,host){
+    const x=ids(scope),country=document.getElementById(x.country),city=document.getElementById(x.city);if(!country||!city)return;
+    const countryLabel=country.closest('label'),cityLabel=city.closest('label');const wrap=document.createElement('div');wrap.className='hc21-fallback-body';
+    if(countryLabel)wrap.appendChild(countryLabel);if(cityLabel)wrap.appendChild(cityLabel);host.appendChild(wrap);
+    country.addEventListener('change',()=>setTimeout(()=>sync(scope),220));city.addEventListener('change',()=>sync(scope));
+  }
+  function decorate(scope){
+    const x=ids(scope),loc=document.getElementById(x.loc),mapbox=document.getElementById(x.map);if(!loc||!mapbox||document.getElementById(x.shell))return;
+    const shell=document.createElement('section');shell.id=x.shell;shell.className='hc21-location-shell';
+    const current=placeLabel(scope);shell.innerHTML='<div class="hc21-location-hero"><div class="hc21-pin">⌖</div><div class="hc21-hero-copy"><div class="hc21-eyebrow">Member location</div><div class="hc21-place" id="'+x.place+'">'+current+'</div><div class="hc21-sub">Search on the map and choose the city/town the member provided.</div></div><button class="hc21-change" type="button" data-hc21-change>Change</button></div><div class="hc21-tabs" id="'+x.tabs+'"><button class="hc21-tab" type="button" data-hc21-mode="local">📍 Nearby</button><button class="hc21-tab" type="button" data-hc21-mode="global">🌍 Global</button></div><div class="hc21-mode-copy"></div><div class="hc21-mapbox-wrap"></div><div class="hc21-radius"><div class="hc21-radius-head"><b>Maximum distance</b><span class="hc21-radius-value" id="'+x.rangeVal+'">50 km</span></div><input id="'+x.range+'" type="range" min="5" max="500" step="5" value="50"><div class="hc21-radius-scale"><span>5 km</span><span>250 km</span><span>500 km</span></div></div><div class="hc21-country-select"></div><details class="hc21-fallback" id="'+x.fallback+'"><summary>Choose from country and city lists instead</summary></details><div class="hc21-global-note">For member privacy, Admin saves the selected city/town, country and discovery preferences — not an exact home address or precise GPS point.</div>';
+    loc.parentNode.insertBefore(shell,loc);shell.appendChild(loc);shell.querySelector('.hc21-mapbox-wrap').appendChild(mapbox);
+    fallbackFields(scope,shell.querySelector('#'+x.fallback));
+    const prefs=document.getElementById(x.countries);if(prefs){const label=prefs.closest('label');if(label)shell.querySelector('.hc21-country-select').appendChild(label)}
+    const radius=document.getElementById(x.radius);if(radius){const label=radius.closest('label');if(label)label.style.display='none'}
+    const mode=document.getElementById(x.mode);if(mode){const label=mode.closest('label');if(label)label.style.display='none'}
+    shell.querySelectorAll('[data-hc21-mode]').forEach(b=>b.onclick=()=>setMode(scope,b.dataset.hc21Mode));
+    shell.querySelector('[data-hc21-change]').onclick=()=>{const search=mapbox.querySelector('.hc20-search');if(search){search.scrollIntoView({behavior:'smooth',block:'center'});search.focus()}};
+    const range=document.getElementById(x.range);if(range&&radius){range.value=Math.max(5,Math.min(500,Number(radius.value||50)));range.oninput=()=>{radius.value=range.value;const out=document.getElementById(x.rangeVal);if(out)out.textContent=range.value+' km';radius.dispatchEvent(new Event('input',{bubbles:true}))}}
+    new MutationObserver(()=>sync(scope)).observe(mapbox,{subtree:true,childList:true,characterData:true});
+    sync(scope);setTimeout(()=>sync(scope),350);
+  }
+  function enhance(){if(document.getElementById('hc16AddEmail'))decorate('add');if(document.getElementById('hc17ManageLocation'))decorate('manage')}
+  const target=document.getElementById('modalBody')||document.body;new MutationObserver(()=>setTimeout(enhance,50)).observe(target,{childList:true,subtree:true});enhance();
+})();
+</script>`;
+  return adminHtmlV20(version).replace('</body>',upgrade+'</body>');
+}

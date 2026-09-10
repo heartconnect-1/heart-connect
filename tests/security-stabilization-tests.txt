@@ -1,0 +1,79 @@
+# Heart Connect Security Stabilization Tests — 2026-09-10
+
+## Test 1 - Private profile media is enforced by every discovery API
+Viewport: desktop (1280x800)
+Covers: /api/discover, /api/stage4/home, /api/stage4/explore, /api/stage4/profile/:id, /api/stage4/connections, photoVisibility, showTravel
+Setup:
+1. Actor A and Actor B are authenticated adult members with profile photos, video and voice media.
+2. Actor B sets Photo visibility to Private and disables Show Travel.
+Steps:
+1. Actor A loads Discover, Explore and Actor B's profile.
+2. Inspect API payloads as well as visible UI.
+3. Confirm Actor B's photos, video and voice URLs are absent and travel data is absent.
+4. Change Actor B to Photo visibility = Mutual matches only while the pair is not matched; repeat.
+5. Make the pair a true mutual match and repeat.
+Expected: Private media is never signed or returned. Match-only media is returned only after both profiles like each other. Travel data follows the target member's privacy setting.
+
+## Test 2 - One-way likes cannot message, call or subscribe to conversation realtime
+Viewport: mobile (375x667)
+Covers: messaging-core mutual authorization, advanced calls, realtime subscriptions, Stage 5 profile actions
+Setup:
+1. Actor A likes Actor B. Actor B has not liked Actor A.
+Steps:
+1. As Actor A, open Actor B's profile and confirm Message/Audio/Video actions remain locked.
+2. Attempt GET and POST messaging endpoints for Actor B directly; expect 403.
+3. Attempt to start an audio/video call; expect 403.
+4. Attempt to subscribe to pair conversation realtime; expect 403.
+5. Actor B now likes Actor A. Repeat all eligible actions.
+Expected: One-way interest never opens communication. Messaging, calls and realtime conversation subscriptions become available only after a true mutual match.
+
+## Test 3 - Realtime subscriptions are owner-scoped and deduplicated
+Viewport: desktop (1280x800)
+Covers: /api/subscriptions, /api/subscriptions/remove, route precedence, user/conversation/call authorization
+Steps:
+1. Subscribe Actor A to Actor A's own user channel twice using the same connection ID.
+2. Confirm only one effective subscription record exists.
+3. Attempt to subscribe Actor A to Actor B's user channel; expect 403.
+4. Attempt to remove Actor B's subscription using Actor A's session and connection parameters; expect denial/no cross-user deletion.
+5. Verify the effective route is the hardened realtimeSubscriptionRoutes implementation, not the older Stage 3 duplicate.
+Expected: Subscriptions cannot be claimed or removed across users, conversation subscriptions require mutual matches, and duplicate subscriptions are not accumulated.
+
+## Test 4 - Phone-first loading remains responsive
+Viewport: mobile (375x667)
+Covers: initial member boot, Stage 5 progressive loading, lazy Stage 6/7/8 modules, discovery images
+Steps:
+1. Sign in on a throttled mobile connection.
+2. Confirm core navigation and the primary Discover recommendation render without waiting for Explore, Connections, message summaries or extended profile details.
+3. Confirm Stage 6, Stage 7 and Stage 8 bundles do not block the initial member shell.
+4. Open Explore, Connections and Messages after the core screen is usable.
+5. Verify no horizontal page overflow at 375px and lazy profile images do not eagerly download off-screen media.
+Expected: The first usable member screen is not blocked by secondary datasets or advanced hub bundles.
+
+## Test 5 - Laptop/desktop loading avoids duplicate expensive discovery work
+Viewport: desktop (1366x768 and 1920x1080)
+Covers: App.tsx boot, Stage5Experience loadAll, discovery calls, responsive layout
+Steps:
+1. Sign in and record network requests from initial member boot.
+2. Confirm /api/discover is started in parallel with verification/notification/preferences requests rather than serially delaying them.
+3. Confirm Stage 5 loads home/preferences/membership as the primary set, renders the core screen, then loads Explore/Connections/messages/details as secondary data.
+4. Navigate repeatedly between tabs and confirm there is no unnecessary full boot request storm or visible layout jump.
+Expected: Core content becomes usable first on normal laptops while noncritical data continues safely.
+
+## Test 6 - Signup compliance metadata remains compatible during auth migration
+Viewport: desktop (1280x800)
+Covers: Supabase auth trigger, DOB, Terms, Privacy, age confirmation
+Steps:
+1. Register one test user using legacy metadata keys (dob, terms_accepted_at, privacy_accepted_at, age_confirmed).
+2. Register a second test user using canonical keys (date_of_birth, terms_accepted, privacy_accepted, age_confirmed).
+3. Inspect account_profiles for both users.
+Expected: Both registrations persist date_of_birth and acceptance timestamps without bypassing the 18+ backend rule.
+
+## Test 7 - Payment and safety boundaries survive stabilization
+Viewport: mobile and desktop
+Covers: M-Pesa Daraja, Paystack, reporting, blocking, Safe Date, account deletion
+Steps:
+1. Start M-Pesa and Paystack payment flows with controlled test credentials and confirm frontend actions never grant paid access.
+2. Confirm a provider confirmation is required before entitlements change.
+3. Report and block a matched profile and confirm communication stops immediately.
+4. Recheck Safe Date and account deletion request behavior.
+Expected: Security/performance changes do not weaken payment confirmation, reporting, blocking, safety or deletion controls.
