@@ -67,7 +67,7 @@ comment on column public.hc_payment_transactions.provider_verified_at is
 insert into public.hc_admin_readiness_checks(key,category,label,description,required,status)
 values (
   'native_payment_ledger_present',
-  'payments',
+  'database',
   'Native payment ledger present',
   'The server-only hc_payment_transactions ledger exists. This does not by itself prove a live payment provider or legacy reconciliation path is connected.',
   true,
