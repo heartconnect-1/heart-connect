@@ -73,7 +73,7 @@ jobs:
           grep -Fq "noAutomaticBans:true" cloudflare/admin-api-v6.js
           grep -Fq "noAutomaticPaymentActions:true" cloudflare/admin-api-v6.js
           grep -Fq "No user bans, verification decisions, payment actions or deletion happen automatically here" cloudflare/admin-ui-v6.js
-          grep -Fq "Required launch checks cannot be waived" supabase/migrations/20260910121500_admin_phase6_command_center.sql
+          grep -Fq "Required launch gates cannot be waived" supabase/migrations/20260910121500_admin_phase6_command_center.sql
           grep -Fq '"main": "cloudflare/worker-admin-v6.js"' wrangler.router.jsonc
 
       - name: Compile Worker without deploying
