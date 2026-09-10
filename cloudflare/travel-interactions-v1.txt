@@ -1,13 +1,16 @@
 (()=>{
 if(window.__hcTravelInteractionsV1)return;window.__hcTravelInteractionsV1=true;
-const style=document.createElement('style');style.textContent='.hc-card-link{cursor:pointer;position:relative}.hc-card-link:focus-visible{outline:3px solid rgba(236,72,117,.35);outline-offset:3px}.hc-card-link::after{content:"→";position:absolute;right:16px;bottom:14px;font-weight:900;color:#ec4875;opacity:.75}.region.hc-card-link::after{right:12px;bottom:10px}.trip-list .hc-card-link::after{right:12px;bottom:10px;font-size:12px}.hc-card-link:hover::after{transform:translateX(3px);opacity:1}.hc-card-link::after{transition:.18s ease}';document.head.appendChild(style);
+const style=document.createElement('style');style.textContent='.hc-card-link{cursor:pointer;position:relative}.hc-card-link:focus-visible{outline:3px solid rgba(236,72,117,.35);outline-offset:3px}.hc-card-link::after{content:"→";position:absolute;right:16px;bottom:14px;font-weight:900;color:#ec4875;opacity:.75}.region.hc-card-link::after{right:12px;bottom:10px}.trip-list .hc-card-link::after{right:12px;bottom:10px;font-size:12px}.hc-card-link:hover::after{transform:translateX(3px);opacity:1}.hc-card-link::after{transition:.18s ease}.hc-travel-inline-back{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 4px;padding:12px 14px;border:1px solid #e7e7ef;border-radius:13px;background:#f7f7fb}.hc-travel-inline-back a{font-size:12px;font-weight:900;text-decoration:none;color:#121735}.hc-travel-inline-back span{font-size:11px;color:#6f7285}@media(max-width:600px){.hc-travel-inline-back{align-items:flex-start;flex-direction:column;gap:3px}}';document.head.appendChild(style);
 const enquiry=()=>document.getElementById('enquiry');
+const servicesSection=document.querySelector('.intro');if(servicesSection&&!servicesSection.id)servicesSection.id='travel-services';
+function returnUrl(href){const u=new URL(href,location.origin);u.searchParams.set('from','travel');return u.pathname+u.search+u.hash}
+function ensureInlineBack(){const shell=enquiry()?.querySelector('.enquiry-grid');if(!shell||shell.querySelector('.hc-travel-inline-back'))return;const bar=document.createElement('div');bar.className='hc-travel-inline-back';bar.innerHTML='<a href="#travel-services">← Back to Travel Services</a><span>Choose another travel option</span>';shell.prepend(bar)}
 function go(href,prefill=''){
  if(href==='#enquiry'){
    if(prefill){const d=document.getElementById('destination');if(d&&!d.value)d.value=prefill}
-   enquiry()?.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'','#enquiry');return;
+   ensureInlineBack();enquiry()?.scrollIntoView({behavior:'smooth',block:'start'});history.replaceState(null,'','#enquiry');return;
  }
- location.href=href;
+ location.href=returnUrl(href);
 }
 function bind(el,href,label,prefill=''){
  if(!el||el.dataset.hcClickable==='1')return;el.dataset.hcClickable='1';el.classList.add('hc-card-link');el.tabIndex=0;el.setAttribute('role','link');el.setAttribute('aria-label',label);
