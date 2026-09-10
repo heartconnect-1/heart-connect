@@ -34,7 +34,7 @@ jobs:
             exit 1
           fi
           grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
-          grep -Fq "from './admin-api-v27.js';" cloudflare/worker-admin-v7.js
+          grep -Fq "from './admin-api-v28.js';" cloudflare/worker-admin-v7.js
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
           grep -Fq '"keep_vars": true' wrangler.router.jsonc
           grep -Fq '"binding": "AI"' wrangler.router.jsonc
@@ -128,6 +128,7 @@ jobs:
           node --check cloudflare/admin-api-v25.js
           node --check cloudflare/admin-api-v26.js
           node --check cloudflare/admin-api-v27.js
+          node --check cloudflare/admin-api-v28.js
           node --check cloudflare/admin-login-v2.js
           node --check cloudflare/admin-ui-v3.js
           node --check cloudflare/admin-ui-v4.js
@@ -154,6 +155,7 @@ jobs:
           node --check cloudflare/admin-ui-v25.js
           node --check cloudflare/admin-ui-v26.js
           node --check cloudflare/admin-ui-v27.js
+          node --check cloudflare/admin-ui-v28.js
           cp cloudflare/booking-advanced-v10.txt /tmp/booking-advanced-v10.js
           node --check /tmp/booking-advanced-v10.js
           node --check cloudflare/admin-html-client-check.js
@@ -169,8 +171,8 @@ jobs:
           grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
           grep -Fq "hc_admin_resolve_auth_user_by_email" cloudflare/admin-api-v9.js
           grep -Fq "cannot deactivate or change your own current admin role" cloudflare/admin-api-v9.js
-          grep -Fq "permissions-policy" cloudflare/admin-api-v27.js
-          grep -Fq "strict-transport-security" cloudflare/admin-api-v27.js
+          grep -Fq "permissions-policy" cloudflare/admin-api-v28.js
+          grep -Fq "strict-transport-security" cloudflare/admin-api-v28.js
           grep -Fq "admin.user.onboard_existing" cloudflare/admin-api-v16.js
           grep -Fq "At least one approved profile photo is required" cloudflare/admin-api-v16.js
           grep -Fq "moderation_status:'pending'" cloudflare/admin-api-v16.js
@@ -255,6 +257,14 @@ jobs:
           grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV18(request,env);" cloudflare/admin-api-v19.js
           grep -Fq "if(!p.startsWith('/api/admin/'))return handleAdminV19(request,env);" cloudflare/admin-api-v20.js
           grep -Fq "/api/admin/ai/operations" cloudflare/admin-ui-v27.js
+          grep -Fq "Advanced Verification Center" cloudflare/admin-ui-v28.js
+          grep -Fq "Member Verification" cloudflare/admin-ui-v28.js
+          grep -Fq "BnB & Booking Verification" cloudflare/admin-ui-v28.js
+          grep -Fq "Short-lived evidence access" cloudflare/admin-ui-v28.js
+          grep -Fq "Evidence links expire" cloudflare/admin-ui-v28.js || true
+          grep -Fq "AI verification assistant" cloudflare/admin-ui-v28.js
+          grep -Fq "Native Admin connector still required for booking documents" cloudflare/admin-ui-v28.js
+          grep -Fq "verification_summary" cloudflare/admin-ui-v28.js
           test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
           test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
           BRIDGE=supabase/migrations/20260910124500_admin_security_reconciliation.sql
