@@ -89,6 +89,17 @@ jobs:
           grep -Fq "Export contents are not stored here" supabase/migrations/20260910123000_admin_phase7_reports_security.sql
           grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
 
+      - name: Final Admin release audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "Admin branch: READY FOR RECONCILIATION." docs/admin-final-audit.md
+          grep -Fq "Combined production candidate: NOT READY YET." docs/admin-final-audit.md
+          grep -Fq "Production merge is blocked until security reconciliation and combined preview testing are complete." docs/admin-final-audit.md
+          grep -Fq "import previousWorker from './worker-v12.js';" cloudflare/worker-admin-v7.js
+          git show refs/remotes/origin/security-stabilization-2026-09-10:wrangler.router.jsonc | grep -Fq '"main": "cloudflare/worker-v12.js"'
+          echo "Final Admin package is internally validated and remains blocked from production until reconciliation."
+
       - name: Compile Worker without deploying
         run: npx --yes wrangler@latest deploy --dry-run --config wrangler.router.jsonc
 
