@@ -29,6 +29,8 @@ create table if not exists public.notifications (
 );
 
 alter table public.notifications
+  add column if not exists id uuid default gen_random_uuid(),
+  add column if not exists user_id uuid,
   add column if not exists event_type text not null default 'system',
   add column if not exists title text,
   add column if not exists body text,
@@ -47,9 +49,10 @@ create index if not exists notifications_user_created_idx
   on public.notifications(user_id,created_at desc);
 create index if not exists notifications_user_unread_idx
   on public.notifications(user_id,is_read,created_at desc);
+-- PostgreSQL UNIQUE indexes allow multiple NULL values. Keeping this index
+-- non-partial lets PostgREST safely use `on_conflict=source_key` for idempotency.
 create unique index if not exists notifications_source_key_uidx
-  on public.notifications(source_key)
-  where source_key is not null;
+  on public.notifications(source_key);
 
 -- Users may read only their own notification rows and may update only read state.
 alter table public.notifications enable row level security;
