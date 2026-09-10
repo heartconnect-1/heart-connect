@@ -73,6 +73,12 @@ jobs:
         run: npm run build
       - name: Validate Cloudflare Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
+      - name: Deploy Cloudflare Worker
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy --config wrangler.router.jsonc
       - name: Configure owner access
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
@@ -85,12 +91,6 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$HEART_CONNECT_OWNER_EMAILS"
           printf '%s' "$HEART_CONNECT_OWNER_EMAILS" | npx wrangler secret put HEART_CONNECT_OWNER_EMAILS --config wrangler.router.jsonc
-      - name: Deploy Cloudflare Worker
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy --config wrangler.router.jsonc
       - name: Smoke test production admin
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
