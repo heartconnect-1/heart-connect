@@ -1,7 +1,7 @@
 import vm from 'node:vm';
-import {adminHtml} from './admin-ui-v22.js';
+import {adminHtml} from './admin-ui-v23.js';
 
-const html=adminHtml('hc-admin-control-plane-v22-test');
+const html=adminHtml('hc-admin-control-plane-v23-test');
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
 if(!scripts.length)throw new Error('No inline admin scripts found.');
 for(const [i,script] of scripts.entries()){
@@ -18,9 +18,9 @@ for(const [i,script] of scripts.entries()){
     process.exit(1);
   }
 }
-for(const marker of ['Media & HTML sections','Post media uploads','+ Add User','Profile editor','Discover visibility','Upload profile photo','AI admin assistant','Back to Users','Location & discovery','Save location','✦ AI Help','Heart Connect Admin AI','Profile photos','hc19AddPhotos','Mapbox place picker','Search Mapbox','hc16AddGender','hc16Gender','Select gender','📍 Nearby','🌍 Global','Maximum distance','Choose from country and city lists instead','Member location','hc21-location-shell','Choose interests','hc22-interest-box','Multiple selections are allowed']){
+for(const marker of ['Media & HTML sections','Post media uploads','+ Add User','Profile editor','Discover visibility','Upload profile photo','AI admin assistant','Back to Users','Location & discovery','Save location','✦ AI Help','Heart Connect Admin AI','Profile photos','hc19AddPhotos','Mapbox place picker','Search Mapbox','hc16AddGender','hc16Gender','Select gender','📍 Nearby','🌍 Global','Maximum distance','Choose from country and city lists instead','Member location','hc21-location-shell','Choose interests','hc22-interest-box','Multiple selections are allowed','Heart Connect control center','Needs your attention','Platform operations','Launch readiness','AI management brief','Quick actions','+ Add user']){
   if(!html.includes(marker))throw new Error(`Missing current Admin marker: ${marker}`);
 }
 if(html.includes("const TYPES=['home','legal','help','landing','content'];"))throw new Error('Broken v11 browser override was not removed.');
 if(html.includes('function esc13'))throw new Error('Broken v13 browser bridge was not removed.');
-console.log(`Compiled ${scripts.length} admin inline scripts and verified v22 interests, gender and location controls.`);
+console.log(`Compiled ${scripts.length} admin inline scripts and verified v23 overview, interests, gender and location controls.`);
