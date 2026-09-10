@@ -14,8 +14,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout admin branch
+      - name: Checkout admin branch with history
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce admin branch isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin security-stabilization-2026-09-10:refs/remotes/origin/security-stabilization-2026-09-10 --no-tags
+          BASE="$(git merge-base HEAD refs/remotes/origin/security-stabilization-2026-09-10)"
+          git diff --name-only "$BASE"..HEAD > /tmp/admin-files.txt
+          echo "Admin branch files since merge base:"
+          cat /tmp/admin-files.txt
+          BAD="$(grep -Ev '^(\.github/workflows/admin-[^/]+\.yml|cloudflare/admin-[^/]+\.js|cloudflare/worker-admin-[^/]+\.js|supabase/migrations/[0-9]+_admin_[^/]+\.sql|docs/admin-[^/]+\.md|wrangler\.router\.jsonc)$' /tmp/admin-files.txt || true)"
+          if [ -n "$BAD" ]; then
+            echo "Unexpected non-admin paths found on the admin branch:"
+            echo "$BAD"
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
