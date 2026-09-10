@@ -5,7 +5,8 @@ const RETIRED_BOOKING_SCRIPTS=new Set([
   '/_hc/booking-dashboard.js',
   '/_hc/booking-fix-v9.js',
   '/_hc/booking-fix.js',
-  '/_hc/booking-polish.js'
+  '/_hc/booking-polish.js',
+  '/_hc/countries.js'
 ]);
 
 function isNavigation(request){
