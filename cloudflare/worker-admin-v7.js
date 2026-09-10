@@ -1,14 +1,14 @@
 import previousWorker from './worker-v15.js';
-import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v49.js';
+import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v50.js';
 import {handleAdminLogin} from './admin-login-v2.js';
+import {handleAdminAuth,validateAdminSession} from './admin-auth-v1.js';
 import BOOKING_ADVANCED from './booking-advanced-v10.txt';
 
-const EDGE_VERSION='cloudflare-admin-router-v49-force-settings-render';
+const EDGE_VERSION='cloudflare-admin-router-v50-security-hardened';
 const BOOKING_ASSET='/_hc/booking-advanced-v10.js';
 const BOOKING_LOCATION_SEARCH='/_hc/booking-location-search';
 
 function stamp(response){const h=new Headers(response.headers);h.set('x-heart-connect-admin-router',EDGE_VERSION);h.set('x-heart-connect-admin-version',ADMIN_VERSION);h.set('x-heart-connect-security-core','cloudflare-router-v15');h.set('x-content-type-options','nosniff');h.set('referrer-policy','strict-origin-when-cross-origin');h.set('permissions-policy','camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=()');h.set('strict-transport-security','max-age=31536000; includeSubDomains');return new Response(response.body,{status:response.status,statusText:response.statusText,headers:h})}
-function hasNativeSessionCookie(request){return /(?:^|;\s*)__Host-hc_cf_access=/.test(String(request.headers.get('cookie')||''))}
 function clean(v,n=300){return String(v??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,n)}
 function isBookingNavigation(request,url){if(request.method!=='GET'&&request.method!=='HEAD')return false;if(!(url.pathname==='/bookings'||url.pathname.startsWith('/bookings/')))return false;const accept=request.headers.get('accept')||'',mode=request.headers.get('sec-fetch-mode')||'';return mode==='navigate'||accept.includes('text/html')}
 function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'same-origin','x-heart-connect-booking':'advanced-v10'}})}
@@ -53,7 +53,12 @@ export default {
     const url=new URL(request.url);
     if(url.pathname===BOOKING_ASSET&&request.method==='GET')return new Response(BOOKING_ADVANCED,{headers:{'content-type':'application/javascript; charset=utf-8','cache-control':'public, max-age=300','x-content-type-options':'nosniff','x-heart-connect-booking':'advanced-v10'}});
     if(url.pathname===BOOKING_LOCATION_SEARCH&&request.method==='GET')return bookingLocationSearch(request,env);
-    if((url.pathname==='/admin'||url.pathname==='/admin/')&&!hasNativeSessionCookie(request))return Response.redirect(new URL('/admin/login',url),302);
+    const auth=await handleAdminAuth(request,env);
+    if(auth)return stamp(auth);
+    if(url.pathname==='/admin'||url.pathname==='/admin/'){
+      const session=await validateAdminSession(request,env);
+      if(!session.ok)return Response.redirect(new URL('/admin/login',url),302);
+    }
     const login=await handleAdminLogin(request,env);
     if(login)return stamp(login);
     const admin=await handleAdmin(request,env);
