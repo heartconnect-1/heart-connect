@@ -39,7 +39,7 @@ async function cities(request,env){const actor=await actorFor(request,env);if(!a
 
 export async function handleAdmin(request,env){
   const u=new URL(request.url),p=u.pathname;
-  if((p==='/admin'||p==='/admin/')&&(request.method==='GET'||request.method==='HEAD'))return page(adminHtml(VERSION),request.method==='HEAD');
+  if((p==='/admin'||p==='/admin/')&&(request.method==='GET'||request.method==='HEAD'))return page(adminHtml(VERSION),request.method==='HEAD');if(!p.startsWith('/api/admin/'))return handleAdminV18(request,env);
   if(!sameOrigin(request))return j({error:'Cross-site admin request blocked.'},403);
   if(p==='/api/admin/locations/countries'&&request.method==='GET')return countries(request,env);
   if(p==='/api/admin/locations/cities'&&request.method==='GET')return cities(request,env);
