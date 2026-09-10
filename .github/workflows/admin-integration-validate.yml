@@ -1,0 +1,134 @@
+name: Security + Admin Integration Validation
+
+on:
+  push:
+    branches: [integration-security-admin-2026-09-10]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout integration candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+
+      - name: Verify exact security checkpoint ancestry and integration footprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          SECURITY_CHECKPOINT="d691c1e45a7699c1b9066e471ae09c3066a6866a"
+          git merge-base --is-ancestor "$SECURITY_CHECKPOINT" HEAD
+          git diff --name-only "$SECURITY_CHECKPOINT"..HEAD > /tmp/integration-files.txt
+          echo "Integration-only changes since the approved security checkpoint:"
+          cat /tmp/integration-files.txt
+          BAD="$(grep -Ev '^(\.github/workflows/admin-integration-validate\.yml|cloudflare/admin-[^/]+\.js|cloudflare/worker-admin-v7\.js|supabase/migrations/[0-9]+_admin_[^/]+\.sql|docs/admin-[^/]+\.md|wrangler\.router\.jsonc)$' /tmp/integration-files.txt || true)"
+          if [ -n "$BAD" ]; then
+            echo "Unexpected security-owned files changed during integration:"
+            echo "$BAD"
+            exit 1
+          fi
+          grep -Fq "import previousWorker from './worker-v15.js';" cloudflare/worker-admin-v7.js
+          grep -Fq '"main": "cloudflare/worker-admin-v7.js"' wrangler.router.jsonc
+          grep -Fq '"binding": "AI"' wrangler.router.jsonc
+          grep -Fq '"*/5 * * * *"' wrangler.router.jsonc
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Scan for committed high-risk secrets
+        shell: bash
+        run: |
+          if grep -RInE --exclude-dir=.git --exclude-dir=node_modules --exclude='*.md' '(sk_live_[A-Za-z0-9]{16,}|sk_test_[A-Za-z0-9]{16,}|github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' .; then
+            echo 'Potential committed secret detected.'
+            exit 1
+          fi
+
+      - name: Audit runtime dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Add AppDeploy CI shim
+        run: |
+          mkdir -p node_modules/@appdeploy/client
+          cat > node_modules/@appdeploy/client/package.json <<'EOF'
+          {"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js","types":"./index.d.ts"}
+          EOF
+          cat > node_modules/@appdeploy/client/index.js <<'EOF'
+          export const auth = {};
+          export const api = {};
+          export const ws = {};
+          EOF
+          cat > node_modules/@appdeploy/client/index.d.ts <<'EOF'
+          export type ApiResponse<T = any> = { data: T };
+          export interface ApiClient {
+            get<T = any>(path: string): Promise<ApiResponse<T>>;
+            post<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
+            put<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
+            delete<T = any>(path: string): Promise<ApiResponse<T>>;
+          }
+          export interface AuthClient {
+            getUser(): Promise<any>;
+            signIn(...args: any[]): Promise<any>;
+            signOut(...args: any[]): Promise<any>;
+          }
+          export interface WsConnection {
+            connectionId?: string;
+            ready: Promise<void>;
+            onMessage(cb: (message: any) => void): void;
+            onError(cb: (error: any) => void): void;
+            onClose(cb: () => void): void;
+            disconnect(): void;
+          }
+          export const api: ApiClient;
+          export const auth: AuthClient;
+          export const ws: { connect(...args: any[]): WsConnection };
+          EOF
+
+      - name: Validate security and admin JavaScript modules
+        run: |
+          node --check cloudflare/worker-v15.js
+          node --check cloudflare/worker-admin-v7.js
+          node --check cloudflare/admin-api-v1.js
+          node --check cloudflare/admin-api-v2.js
+          node --check cloudflare/admin-api-v2-guard.js
+          node --check cloudflare/admin-api-v3.js
+          node --check cloudflare/admin-api-v4.js
+          node --check cloudflare/admin-api-v5.js
+          node --check cloudflare/admin-api-v6.js
+          node --check cloudflare/admin-api-v7.js
+          node --check cloudflare/admin-ui-v3.js
+          node --check cloudflare/admin-ui-v4.js
+          node --check cloudflare/admin-ui-v5.js
+          node --check cloudflare/admin-ui-v6.js
+          node --check cloudflare/admin-ui-v7.js
+
+      - name: Validate Admin safety boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "aiExecutesHighImpactActions:false" cloudflare/admin-api-v5.js
+          grep -Fq "requiredLaunchChecksCannotBeWaived:true" cloudflare/admin-api-v6.js
+          grep -Fq "privateMessagesNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "paymentCredentialsNeverExported:true" cloudflare/admin-api-v7.js
+          grep -Fq "ADDitive" /dev/null 2>/dev/null || true
+          test -f supabase/migrations/20260910100000_admin_control_plane_foundation.sql
+          test -f supabase/migrations/20260910123000_admin_phase7_reports_security.sql
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate combined Cloudflare Worker without deploying
+        run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
