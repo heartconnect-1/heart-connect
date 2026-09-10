@@ -13,7 +13,7 @@ export function adminHtml(version){
   function card(label,value,sub){return '<div class="hc25-card"><small>'+esc(label)+'</small><strong>'+esc(value==null?'—':value)+'</strong><span>'+esc(sub)+'</span></div>'}
   function bar(label,value,max){const pct=max?Math.max(0,Math.min(100,Math.round(n(value)/max*100))):0;return '<div class="hc25-bar-row"><label>'+esc(label)+'</label><div class="hc25-track"><div class="hc25-fill" style="width:'+pct+'%"></div></div><b>'+esc(value==null?'—':value)+'</b></div>'}
   function op(label,value,sub){return '<div class="hc25-op"><div><b>'+esc(label)+'</b><small>'+esc(sub)+'</small></div><strong>'+esc(value==null?'—':value)+'</strong></div>'}
-  function should(){const t=q('#title'),v=q('#view');return t&&v&&t.textContent.trim()==='Analytics'&&!v.querySelector('.hc25-analytics')&&/Analytics|Loading|Total profiles|New profiles/i.test(v.textContent||'')}
+  function should(){const t=q('#title'),v=q('#view');return t&&v&&t.textContent.trim()==='Analytics'&&!v.querySelector('.hc25-analytics')&&!v.querySelector('.hc26')&&/Analytics|Loading|Total profiles|New profiles/i.test(v.textContent||'')}
   async function render(days){
     const v=q('#view');if(!v)return;currentDays=days;v.innerHTML='<div class="hc25-loading">Loading privacy-safe analytics…</div>';
     try{
