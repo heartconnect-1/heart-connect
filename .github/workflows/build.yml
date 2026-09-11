@@ -88,7 +88,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check cloudflare/admin-auth-v2.js
-          node --check cloudflare/admin-api-v52.js
+          node --check cloudflare/admin-api-v53.js
           node --check cloudflare/admin-ui-v50.js
           node --check cloudflare/worker-admin-v7.js
           grep -Fq "SameSite=Strict" cloudflare/admin-auth-v2.js
@@ -96,13 +96,16 @@ jobs:
           grep -Fq "browserSessionOnly:true" cloudflare/admin-auth-v2.js
           grep -Fq "Path=/; Secure; HttpOnly; SameSite=Strict; Priority=High" cloudflare/admin-auth-v2.js
           grep -Fq "validateAdminSession" cloudflare/worker-admin-v7.js
-          grep -Fq "cloudflare-admin-router-v52-homepage-cms" cloudflare/worker-admin-v7.js
-          grep -Fq "admin-api-v52.js" cloudflare/worker-admin-v7.js
+          grep -Fq "cloudflare-admin-router-v53-pages-clickable" cloudflare/worker-admin-v7.js
+          grep -Fq "admin-api-v53.js" cloudflare/worker-admin-v7.js
           node --check cloudflare/homepage-public-v1.js
-          node --check cloudflare/admin-ui-v52.js
+          node --check cloudflare/admin-ui-v53.js
           grep -Fq "handleHomepage" cloudflare/worker-admin-v7.js
           grep -Fq "/api/admin/homepage" cloudflare/admin-api-v52.js
           grep -Fq "This editor controls the main marketing homepage (/). It does not edit the signed-in member home (/app)." cloudflare/admin-api-v52.js
+          grep -Fq "hc53-clickable" cloudflare/admin-ui-v53.js
+          grep -Fq "Filter pages by" cloudflare/admin-ui-v53.js
+          grep -Fq "seo complete" cloudflare/admin-ui-v53.js
 
       - name: Validate Cloudflare Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
@@ -136,7 +139,7 @@ jobs:
           echo "admin/login => $LOGIN_STATUS"
           test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
-          grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v52-homepage-cms' /tmp/hc-login-headers.txt
+          grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v53-pages-clickable' /tmp/hc-login-headers.txt
 
           ADMIN_STATUS="$(curl -sS --max-time 30 \
             -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' \
