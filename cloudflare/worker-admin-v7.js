@@ -1,11 +1,11 @@
 import previousWorker from './worker-v15.js';
-import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v52.js';
+import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v53.js';
 import {handleAdminLogin} from './admin-login-v2.js';
 import {handleAdminAuth,validateAdminSession} from './admin-auth-v2.js';
 import BOOKING_ADVANCED from './booking-advanced-v10.txt';
 import {handleHomepage} from './homepage-public-v1.js';
 
-const EDGE_VERSION='cloudflare-admin-router-v52-homepage-cms';
+const EDGE_VERSION='cloudflare-admin-router-v53-pages-clickable';
 const BOOKING_ASSET='/_hc/booking-advanced-v10.js';
 const BOOKING_LOCATION_SEARCH='/_hc/booking-location-search';
 
