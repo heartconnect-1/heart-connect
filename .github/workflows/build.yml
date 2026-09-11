@@ -71,6 +71,18 @@ jobs:
         run: npm run typecheck
       - name: Build
         run: npm run build
+      - name: Validate professional member routing
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "if(path==='/app')" src/App.tsx
+          grep -Fq "window.location.replace('/login?next=%2Fapp')" src/App.tsx
+          grep -Fq "window.history.replaceState({},'', '/app')" src/App.tsx
+          grep -Fq "window.history.replaceState({},'', '/login')" src/App.tsx
+          grep -Fq "if(p==='/login')return'signin'" src/AuthPortal.tsx
+          grep -Fq "if(p==='/signup')return'register'" src/AuthPortal.tsx
+          grep -Fq "noindex,nofollow" src/App.tsx
+          grep -Fq "noindex,nofollow" src/AuthPortal.tsx
       - name: Validate current Admin hardening modules
         shell: bash
         run: |
@@ -142,3 +154,15 @@ jobs:
             401|403) ;;
             *) echo "Expected unauthenticated Admin API denial, got $CAP_STATUS"; exit 1 ;;
           esac
+
+      - name: Smoke test production member routes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /login /signup /app; do
+            STATUS="$(curl -sS --retry 5 --retry-delay 2 --max-time 30 -o /tmp/hc-member-route.html -w '%{http_code}' "https://royal-heart.com$path")"
+            echo "$path => $STATUS"
+            test "$STATUS" = "200"
+            grep -qi '<div id="root"' /tmp/hc-member-route.html
+          done
