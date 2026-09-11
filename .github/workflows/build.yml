@@ -75,16 +75,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check cloudflare/admin-auth-v1.js
-          node --check cloudflare/admin-api-v50.js
+          node --check cloudflare/admin-auth-v2.js
+          node --check cloudflare/admin-api-v51.js
           node --check cloudflare/admin-ui-v50.js
           node --check cloudflare/worker-admin-v7.js
-          grep -Fq "SameSite=Strict" cloudflare/admin-auth-v1.js
-          grep -Fq "HttpOnly" cloudflare/admin-auth-v1.js
-          grep -Fq "SESSION_MAX_AGE=45*60" cloudflare/admin-auth-v1.js
+          grep -Fq "SameSite=Strict" cloudflare/admin-auth-v2.js
+          grep -Fq "HttpOnly" cloudflare/admin-auth-v2.js
+          grep -Fq "browserSessionOnly:true" cloudflare/admin-auth-v2.js
+          grep -Fq "Path=/; Secure; HttpOnly; SameSite=Strict; Priority=High" cloudflare/admin-auth-v2.js
           grep -Fq "validateAdminSession" cloudflare/worker-admin-v7.js
-          grep -Fq "cloudflare-admin-router-v50-security-hardened" cloudflare/worker-admin-v7.js
-          grep -Fq "admin-api-v50.js" cloudflare/worker-admin-v7.js
+          grep -Fq "cloudflare-admin-router-v51-browser-session-login" cloudflare/worker-admin-v7.js
+          grep -Fq "admin-api-v51.js" cloudflare/worker-admin-v7.js
 
       - name: Validate Cloudflare Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
