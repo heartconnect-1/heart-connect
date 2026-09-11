@@ -119,7 +119,7 @@ jobs:
           echo "admin/login => $LOGIN_STATUS"
           test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
-          grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v50-security-hardened' /tmp/hc-login-headers.txt
+          grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v51-browser-session-login' /tmp/hc-login-headers.txt
 
           ADMIN_STATUS="$(curl -sS --max-time 30 \
             -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' \
