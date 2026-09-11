@@ -1,10 +1,11 @@
 import previousWorker from './worker-v15.js';
-import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v51.js';
+import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from './admin-api-v52.js';
 import {handleAdminLogin} from './admin-login-v2.js';
 import {handleAdminAuth,validateAdminSession} from './admin-auth-v2.js';
 import BOOKING_ADVANCED from './booking-advanced-v10.txt';
+import {handleHomepage} from './homepage-public-v1.js';
 
-const EDGE_VERSION='cloudflare-admin-router-v51-browser-session-login';
+const EDGE_VERSION='cloudflare-admin-router-v52-homepage-cms';
 const BOOKING_ASSET='/_hc/booking-advanced-v10.js';
 const BOOKING_LOCATION_SEARCH='/_hc/booking-location-search';
 
@@ -63,6 +64,8 @@ export default {
     if(login)return stamp(login);
     const admin=await handleAdmin(request,env);
     if(admin)return stamp(admin);
+    const homepage=await handleHomepage(request,env);
+    if(homepage)return homepage;
     const response=await previousWorker.fetch(request,env,ctx);
     return isBookingNavigation(request,url)?bookingTransform(response):response;
   },

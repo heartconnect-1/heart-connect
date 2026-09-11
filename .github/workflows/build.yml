@@ -88,7 +88,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check cloudflare/admin-auth-v2.js
-          node --check cloudflare/admin-api-v51.js
+          node --check cloudflare/admin-api-v52.js
           node --check cloudflare/admin-ui-v50.js
           node --check cloudflare/worker-admin-v7.js
           grep -Fq "SameSite=Strict" cloudflare/admin-auth-v2.js
@@ -96,8 +96,13 @@ jobs:
           grep -Fq "browserSessionOnly:true" cloudflare/admin-auth-v2.js
           grep -Fq "Path=/; Secure; HttpOnly; SameSite=Strict; Priority=High" cloudflare/admin-auth-v2.js
           grep -Fq "validateAdminSession" cloudflare/worker-admin-v7.js
-          grep -Fq "cloudflare-admin-router-v51-browser-session-login" cloudflare/worker-admin-v7.js
-          grep -Fq "admin-api-v51.js" cloudflare/worker-admin-v7.js
+          grep -Fq "cloudflare-admin-router-v52-homepage-cms" cloudflare/worker-admin-v7.js
+          grep -Fq "admin-api-v52.js" cloudflare/worker-admin-v7.js
+          node --check cloudflare/homepage-public-v1.js
+          node --check cloudflare/admin-ui-v52.js
+          grep -Fq "handleHomepage" cloudflare/worker-admin-v7.js
+          grep -Fq "/api/admin/homepage" cloudflare/admin-api-v52.js
+          grep -Fq "This editor controls the main marketing homepage (/). It does not edit the signed-in member home (/app)." cloudflare/admin-api-v52.js
 
       - name: Validate Cloudflare Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
@@ -166,3 +171,19 @@ jobs:
             test "$STATUS" = "200"
             grep -qi '<div id="root"' /tmp/hc-member-route.html
           done
+
+      - name: Smoke test production main homepage
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS="$(curl -sS --retry 5 --retry-delay 2 --max-time 30 -D /tmp/hc-home-headers.txt -o /tmp/hc-home.html -w '%{http_code}' https://royal-heart.com/)"
+          echo "/ => $STATUS"
+          test "$STATUS" = "200"
+          grep -qi '^x-heart-connect-home: hc-main-home-v1' /tmp/hc-home-headers.txt
+          grep -Fq 'Profiles with personality.' /tmp/hc-home.html
+          grep -Fq 'Open member app' /tmp/hc-home.html
+          API_STATUS="$(curl -sS --retry 3 --max-time 30 -o /tmp/hc-home-data.json -w '%{http_code}' https://royal-heart.com/api/public/homepage)"
+          echo "/api/public/homepage => $API_STATUS"
+          test "$API_STATUS" = "200"
+          grep -Fq '"profiles"' /tmp/hc-home-data.json
