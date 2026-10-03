@@ -36,8 +36,8 @@ function legacyRequest(request){
   const u=new URL(request.url),p=u.pathname;
   const map=[
     ['/api/auth/signin','/api/_cf/auth/signin'],['/api/auth/register','/api/_cf/auth/register'],['/api/auth/session','/api/_cf/auth/session'],['/api/auth/refresh','/api/_cf/auth/refresh'],['/api/auth/logout','/api/_cf/auth/logout'],
-    ['/api/me','/api/_cf/me'],['/api/discover','/api/_cf/discover'],['/api/media/sign','/api/_cf/media/sign'],['/api/privacy','/api/_cf/privacy'],['/api/notifications','/api/_cf/notifications'],['/api/reports','/api/_cf/reports'],
-    ['/api/account/export-request','/api/_cf/account/export-request'],['/api/account/export-requests','/api/_cf/account/export-requests'],['/api/account/delete-request','/api/_cf/account/delete-request'],['/api/account/delete-requests','/api/_cf/account/delete-requests'],['/api/compliance/appeals','/api/_cf/enforcement-appeals']
+    ['/api/me','/api/_cf/me'],['/api/discover','/api/_cf/discover'],['/api/media/sign','/api/_cf/media/sign'],['/api/photos','/api/_cf/profile-media'],['/api/media/profile','/api/_cf/profile-media'],['/api/privacy','/api/_cf/privacy'],['/api/notifications','/api/_cf/notifications'],['/api/reports','/api/_cf/reports'],
+    ['/api/account/export-request','/api/_cf/account/export-request'],['/api/account/export-requests','/api/_cf/account/export-requests'],['/api/account/delete-request','/api/_cf/account/delete-request'],['/api/account/delete-requests','/api/_cf/account/delete-requests'],['/api/appeals','/api/_cf/enforcement-appeals']
   ];
   for(const [from,to] of map)if(p===from)return new Request(new URL(to+u.search,u.origin),request);
   const m=p.match(/^\\/api\\/connect\\/([^/]+)$/);if(m)return new Request(new URL('/api/_cf/connect/'+m[1]+u.search,u.origin),request);
