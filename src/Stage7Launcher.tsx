@@ -1,5 +1,5 @@
 import { useEffect,useMemo,useRef,useState } from 'react';
-import { api,ws } from '@appdeploy/client';
+import { api,ws } from './lib/platform';
 import { Globe2,CreditCard,Gift,UsersRound,Building2,CalendarDays,BookOpen,ShieldCheck,LifeBuoy,Settings,X,RefreshCw,Check,Copy,MapPin,BadgeCheck,Ticket,Star,UserPlus,Megaphone,Flag,LockKeyhole,Sparkles,Crown,HeartHandshake,ChevronRight } from 'lucide-react';
 import { t7,type Stage7Language } from './stage7i18n';
 import './stage7.css';
