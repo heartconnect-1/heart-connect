@@ -6,6 +6,7 @@ import {handleAdminLogin} from './admin-login-v2.js';
 import {handleAdminAuth,validateAdminSession} from './admin-auth-v2.js';
 import {handleHomepage} from './homepage-public-v1.js';
 import {handleNativeCoreCompat} from './native-core-compat-v1.js';
+import {handleNativeStage4} from './native-stage4-v1.js';
 
 const EDGE_VERSION='cloudflare-native-router-v1';
 
@@ -61,6 +62,8 @@ export default {
     const compat=await handleNativeCoreCompat(request,env,handleNativeProfileMedia,handleNativeAccountSafety);
     if(compat)return stamp(compat);
 
+    const stage4=await handleNativeStage4(request,env);
+    if(stage4)return stamp(stage4);
     const legacy=legacyRequest(request);
     if(legacy){
       const safety=await handleNativeAccountSafety(legacy,env);
