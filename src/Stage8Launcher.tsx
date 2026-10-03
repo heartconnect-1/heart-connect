@@ -1,5 +1,5 @@
 import { useEffect,useMemo,useRef,useState } from 'react';
-import { api,ws } from '@appdeploy/client';
+import { api,ws } from './lib/platform';
 import { Brain,WandSparkles,Bell,ShieldCheck,Globe2,Search,Wifi,Settings,X,RefreshCw,Check,RotateCcw,SlidersHorizontal,Heart,MapPin,BadgeCheck,MessageCircle,CalendarDays,LockKeyhole,WifiOff,Server,CreditCard,Activity,Languages,EyeOff } from 'lucide-react';
 import { t8,type Stage8Language } from './stage8i18n';
 import './stage8.css';
