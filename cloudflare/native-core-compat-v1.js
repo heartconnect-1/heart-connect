@@ -9,7 +9,7 @@ const REPORT_MAP={
  'Threats':'threat','Hate/abusive content':'other','Underage concern':'underage','Sexual misconduct':'sexual_exploitation',
  'Impersonation':'impersonation','Spam':'spam','Stolen photos':'other','Other':'other'
 };
-function cfg(env){return{url:String(env.SUPABASE_URL||DEFAULT_SUPABASE_URL).replace(/\\/+$/,''),key:String(env.SUPABASE_PUBLISHABLE_KEY||DEFAULT_PUBLISHABLE_KEY)}}
+function cfg(env){return{url:String(env.SUPABASE_URL||DEFAULT_SUPABASE_URL).replace(/\/+$/,''),key:String(env.SUPABASE_PUBLISHABLE_KEY||DEFAULT_PUBLISHABLE_KEY)}}
 function j(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','x-heart-connect-core':'hc-native-core-compat-v1'}})}
 function cookies(request){const o={};for(const p of String(request.headers.get('cookie')||'').split(';')){const i=p.indexOf('=');if(i>0){const k=p.slice(0,i).trim();try{o[k]=decodeURIComponent(p.slice(i+1).trim())}catch{o[k]=p.slice(i+1).trim()}}}return o}
 function cookie(name,value,maxAge){return name+'='+encodeURIComponent(value)+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age='+Math.max(0,Math.floor(maxAge))}
