@@ -58,7 +58,7 @@ export default {
   async fetch(request,env,ctx){
     const url=new URL(request.url);
 
-    const compat=await handleNativeCoreCompat(request,env,handleNativeProfileMedia);
+    const compat=await handleNativeCoreCompat(request,env,handleNativeProfileMedia,handleNativeAccountSafety);
     if(compat)return stamp(compat);
 
     const legacy=legacyRequest(request);\n    if(legacy){\n      const safety=await handleNativeAccountSafety(legacy,env);\n      if(safety)return stamp(safety);\n      const native=await handleNativeApi(legacy,env);\n      if(native)return stamp(native);\n    }\n\n    const safety=await handleNativeAccountSafety(request,env);
