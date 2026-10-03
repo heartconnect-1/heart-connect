@@ -1,5 +1,5 @@
 import { useEffect,useMemo,useState } from 'react';
-import { api } from '@appdeploy/client';
+import { api } from './lib/platform';
 import { ShieldCheck,X,HeartHandshake,UserRoundCheck,LockKeyhole,Crown,Bell,LifeBuoy,Scale,ShieldAlert,Plus,Trash2,CheckCircle2,Clock3,AlertTriangle,Download,PauseCircle,PlayCircle,Languages,CreditCard,Smartphone,RefreshCw,FileText,Activity,Flag } from 'lucide-react';
 import { t,type UiLanguage } from './i18n';
 import './stage3.css';
