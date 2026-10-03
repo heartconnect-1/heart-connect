@@ -1,5 +1,5 @@
 import { useEffect,useMemo,useState } from 'react';
-import { api } from '@appdeploy/client';
+import { api } from './lib/platform';
 import { Heart,Compass,UsersRound,MessageCircle,UserRound,Sparkles,ShieldCheck,BadgeCheck,MapPin,Star,Bookmark,X,SlidersHorizontal,WandSparkles,Crown,Plane,Video,Mic,Camera,ChevronRight,Search,Settings,LockKeyhole,LifeBuoy,HeartHandshake,CreditCard,Zap,Check,Globe2,Clock3,Plus,ArrowLeft,ArrowRight,Share2,Flag,Phone,CalendarHeart,Languages,Eye,Activity,RotateCcw } from 'lucide-react';
 import './stage4.css';import Stage5DiscoveryStudio from './Stage5DiscoveryStudio';import Stage5ProfileDetails from './Stage5ProfileDetails';import Stage5SettingsHub from './Stage5SettingsHub';import Stage5ConversationToolkit from './Stage5ConversationToolkit';import Stage5GuidedOnboarding from './Stage5GuidedOnboarding';import Stage5ProfileDashboard from './Stage5ProfileDashboard';
 import { Bell } from 'lucide-react';
