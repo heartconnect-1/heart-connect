@@ -23,7 +23,9 @@ type RealtimeConnection={
 let activeConnection:RealtimeConnection|null=null;
 
 async function request<T>(path:string,init:RequestInit={}):Promise<ApiResponse<T>>{
-  const response=await fetch(path,{...init,credentials:'include',headers:{'accept':'application/json','content-type':'application/json',...(init.headers||{})}});
+  const {data:{session}}=await supabase.auth.getSession();
+  const authHeaders=session?.access_token?{'authorization':'Bearer '+session.access_token}:{};
+  const response=await fetch(path,{...init,credentials:'include',headers:{'accept':'application/json','content-type':'application/json',...authHeaders,...(init.headers||{})}});
   const text=await response.text();
   let data:any=null;
   try{data=text?JSON.parse(text):null}catch{data=text}
