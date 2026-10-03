@@ -5,6 +5,7 @@ import {handleAdmin,runPhase7AndEarlierScheduled,VERSION as ADMIN_VERSION} from 
 import {handleAdminLogin} from './admin-login-v2.js';
 import {handleAdminAuth,validateAdminSession} from './admin-auth-v2.js';
 import {handleHomepage} from './homepage-public-v1.js';
+import {handleNativeCoreCompat} from './native-core-compat-v1.js';
 
 const EDGE_VERSION='cloudflare-native-router-v1';
 
@@ -56,6 +57,9 @@ function isAssetRequest(request){
 export default {
   async fetch(request,env,ctx){
     const url=new URL(request.url);
+
+    const compat=await handleNativeCoreCompat(request,env,handleNativeProfileMedia);
+    if(compat)return stamp(compat);
 
     const legacy=legacyRequest(request);\n    if(legacy){\n      const safety=await handleNativeAccountSafety(legacy,env);\n      if(safety)return stamp(safety);\n      const native=await handleNativeApi(legacy,env);\n      if(native)return stamp(native);\n    }\n\n    const safety=await handleNativeAccountSafety(request,env);
     if(safety)return stamp(safety);
