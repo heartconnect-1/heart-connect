@@ -44,10 +44,10 @@ function legacyRequest(request){
   ];
   for(const [from,to] of map)if(p===from)return new Request(new URL(to+u.search,u.origin),request);
   const m=p.match(/^\/api\/connect\/([^/]+)$/);if(m)return new Request(new URL('/api/_cf/connect/'+m[1]+u.search,u.origin),request);
-  const mm=p.match(/^/api/messages\\/([^/]+)$/);if(mm)return new Request(new URL('/api/_cf/messages/'+mm[1]+u.search,u.origin),request);
-  const nr=p.match(/^/api/notifications\\/([^/]+)/read$/);if(nr)return new Request(new URL('/api/_cf/notifications/'+nr[1]+'/read'+u.search,u.origin),request);
-  const rr=p.match(/^/api/reports$/);if(rr)return new Request(new URL('/api/_cf/reports'+u.search,u.origin),request);
-  const er=p.match(/^/api/compliance/appeals/([^/]+)$/);if(er)return new Request(new URL('/api/_cf/enforcements/'+er[1]+'/appeal'+u.search,u.origin),request);
+  const mm=p.match(/^\/api\/messages\/([^/]+)$/);if(mm)return new Request(new URL('/api/_cf/messages/'+mm[1]+u.search,u.origin),request);
+  const nr=p.match(/^\/api\/notifications\/([^/]+)\/read$/);if(nr)return new Request(new URL('/api/_cf/notifications/'+nr[1]+'/read'+u.search,u.origin),request);
+  const rr=p.match(/^\/api\/reports$/);if(rr)return new Request(new URL('/api/_cf/reports'+u.search,u.origin),request);
+  const er=p.match(/^\/api\/compliance\/appeals\/([^/]+)$/);if(er)return new Request(new URL('/api/_cf/enforcements/'+er[1]+'/appeal'+u.search,u.origin),request);
   return null;
 }
 
@@ -65,6 +65,8 @@ export default {
 
     const stage4=await handleNativeStage4(request,env);
     if(stage4)return stamp(stage4);
+    const stage6=await handleNativeStage6(request,env);
+    if(stage6)return stamp(stage6);
     const legacy=legacyRequest(request);
     if(legacy){
       const safety=await handleNativeAccountSafety(legacy,env);
