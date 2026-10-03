@@ -31,42 +31,6 @@ jobs:
           fi
       - name: Audit runtime dependencies
         run: npm audit --omit=dev --audit-level=high
-      - name: Add AppDeploy CI shim
-        run: |
-          mkdir -p node_modules/@appdeploy/client
-          cat > node_modules/@appdeploy/client/package.json <<'EOF'
-          {"name":"@appdeploy/client","version":"0.0.0-ci","type":"module","exports":"./index.js","types":"./index.d.ts"}
-          EOF
-          cat > node_modules/@appdeploy/client/index.js <<'EOF'
-          export const auth = {};
-          export const api = {};
-          export const ws = {};
-          EOF
-          cat > node_modules/@appdeploy/client/index.d.ts <<'EOF'
-          export type ApiResponse<T = any> = { data: T };
-          export interface ApiClient {
-            get<T = any>(path: string): Promise<ApiResponse<T>>;
-            post<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
-            put<T = any>(path: string, body?: any): Promise<ApiResponse<T>>;
-            delete<T = any>(path: string): Promise<ApiResponse<T>>;
-          }
-          export interface AuthClient {
-            getUser(): Promise<any>;
-            signIn(...args: any[]): Promise<any>;
-            signOut(...args: any[]): Promise<any>;
-          }
-          export interface WsConnection {
-            connectionId?: string;
-            ready: Promise<void>;
-            onMessage(cb: (message: any) => void): void;
-            onError(cb: (error: any) => void): void;
-            onClose(cb: () => void): void;
-            disconnect(): void;
-          }
-          export const api: ApiClient;
-          export const auth: AuthClient;
-          export const ws: { connect(...args: any[]): WsConnection };
-          EOF
       - name: TypeScript
         run: npm run typecheck
       - name: Build
@@ -111,7 +75,7 @@ jobs:
           grep -Fq "data-hc54-home=\"/\"" cloudflare/admin-ui-v54.js
           grep -Fq "data-hc54-home=\"/app\"" cloudflare/admin-ui-v54.js
 
-      - name: Validate Cloudflare Worker
+      - name: Validate Cloudflare native Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
       - name: Deploy Cloudflare Worker
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
