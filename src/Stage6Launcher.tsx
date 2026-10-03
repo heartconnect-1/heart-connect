@@ -1,5 +1,5 @@
 import { useEffect,useMemo,useRef,useState } from 'react';
-import { api,ws } from '@appdeploy/client';
+import { api,ws } from './lib/platform';
 import { HeartHandshake,Sparkles,UsersRound,CalendarDays,Heart,ShieldCheck,X,MapPin,BadgeCheck,Brain,RefreshCw,Check,Globe2,Coffee,MessageCircle,LockKeyhole,Settings,Search,Plus,Eye,EyeOff,BookHeart,WandSparkles,Flag,UserPlus,Star,Pause,Play } from 'lucide-react';
 import './stage6.css';
 type Props={me:any;onOpenCenter:(tab:string)=>void};type Tab='home'|'intelligence'|'communities'|'events'|'dates'|'relationship'|'social'|'settings'|'admin';
