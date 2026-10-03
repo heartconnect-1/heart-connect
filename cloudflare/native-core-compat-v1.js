@@ -46,11 +46,11 @@ export async function handleNativeCoreCompat(request,env,mediaHandler,accountSaf
  if(p==='/api/verification'&&request.method==='POST')return requestVerification(request,env);
  if(p==='/api/boost'&&request.method==='POST')return boost(request,env);
  if(p==='/api/ai/assist'&&request.method==='POST')return aiAssist(request,env);
- const report=p.match(/^\\/api\\/report\\/([^/]+)$/);if(report&&request.method==='POST')return legacyReport(request,env,accountSafetyHandler,report[1]);
+ const report=p.match(/^\/api\/report\/([^/]+)$/);if(report&&request.method==='POST')return legacyReport(request,env,accountSafetyHandler,report[1]);
  if(p==='/api/photos'&&request.method==='POST')return legacyPhoto(request,env,mediaHandler);
- if(/^\\/api\\/photos$/.test(p)&&request.method==='POST')return legacyPhoto(request,env,mediaHandler);
- if(/^\\/api\\/photos\\/([0-9]+)$/.test(p)&&request.method==='DELETE')return legacyDeletePhoto(request,env,mediaHandler,p.match(/^\\/api\\/photos\\/([0-9]+)$/)[1]);
+ if(/^\/api\/photos$/.test(p)&&request.method==='POST')return legacyPhoto(request,env,mediaHandler);
+ if(/^\/api\/photos\/([0-9]+)$/.test(p)&&request.method==='DELETE')return legacyDeletePhoto(request,env,mediaHandler,p.match(/^\/api\/photos\/([0-9]+)$/)[1]);
  if(p==='/api/media/profile'&&request.method==='POST')return legacyMedia(request,env,mediaHandler);
- const md=p.match(/^\\/api\\/media\\/profile\\/(video|audio)$/);if(md&&request.method==='DELETE')return legacyDeleteMedia(request,env,mediaHandler,md[1]);
+ const md=p.match(/^\/api\/media\/profile\/(video|audio)$/);if(md&&request.method==='DELETE')return legacyDeleteMedia(request,env,mediaHandler,md[1]);
  return null;
 }catch(e){const status=Number(e?.status)||500;return j({error:status===413?'Request too large.':status===415?'JSON request required.':status===400?'Invalid request.':'Native core compatibility error.'},status)}}
