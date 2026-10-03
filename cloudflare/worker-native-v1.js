@@ -7,6 +7,7 @@ import {handleAdminAuth,validateAdminSession} from './admin-auth-v2.js';
 import {handleHomepage} from './homepage-public-v1.js';
 import {handleNativeCoreCompat} from './native-core-compat-v1.js';
 import {handleNativeStage4} from './native-stage4-v1.js';
+import {handleNativeStage6} from './native-stage6-v1.js';
 
 const EDGE_VERSION='cloudflare-native-router-v1';
 
