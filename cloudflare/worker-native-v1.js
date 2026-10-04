@@ -9,6 +9,7 @@ import {handleNativeCoreCompat} from './native-core-compat-v1.js';
 import {handleNativeStage4} from './native-stage4-v1.js';
 import {handleNativeStage6} from './native-stage6-v1.js';
 import {handleNativeStage7} from './native-stage7-v1.js';
+import {handleNativeStage8} from './native-stage8-v1.js';
 
 const EDGE_VERSION='cloudflare-native-router-v1';
 
@@ -70,6 +71,8 @@ export default {
     if(stage6)return stamp(stage6);
     const stage7=await handleNativeStage7(request,env);
     if(stage7)return stamp(stage7);
+    const stage8=await handleNativeStage8(request,env);
+    if(stage8)return stamp(stage8);
     const legacy=legacyRequest(request);
     if(legacy){
       const safety=await handleNativeAccountSafety(legacy,env);
