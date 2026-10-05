@@ -1,5 +1,5 @@
 import { useEffect,useState } from 'react';
-import { api } from '@appdeploy/client';
+import { api } from './lib/platform';
 import { Heart,Compass,UsersRound,MessageCircle,UserRound,Sparkles,ShieldCheck,BadgeCheck,MapPin,Star,Bookmark,X,SlidersHorizontal,WandSparkles,Crown,Plane,Video,Mic,Camera,ChevronRight,Search,LockKeyhole,LifeBuoy,HeartHandshake,Zap,Check,Globe2,ArrowLeft,ArrowRight,Share2,Flag,Phone,CalendarHeart,Languages,Eye,RotateCcw,LayoutGrid,ScanSearch,Bell,Settings } from 'lucide-react';
 import Stage4Experience from './Stage4Experience';
 import './stage5.css';

@@ -1,5 +1,5 @@
 import { useEffect,useState } from 'react';
-import { api } from '@appdeploy/client';
+import { api } from './lib/platform';
 import { ShieldCheck,Route,Sparkles,CreditCard,Check,Globe2 } from 'lucide-react';
 import './stage8.css';
 function money(n:number,c:string){return new Intl.NumberFormat(undefined,{style:'currency',currency:c}).format(n/100)}

@@ -1,5 +1,5 @@
 import { useEffect,useMemo,useState } from 'react';
-import { api } from '@appdeploy/client';
+import { api } from './lib/platform';
 import { ArrowLeft,ArrowRight,BadgeCheck,Bookmark,Check,Crown,Heart,MapPin,MessageCircle,RotateCcw,ShieldCheck,SlidersHorizontal,Sparkles,Star,WandSparkles,X } from 'lucide-react';
 import './stage5-incremental.css';
 type Props={open:boolean;me:any;onClose:()=>void;onConnect:(p:any,action:string)=>Promise<any>|any;onOpenAssistant:(mode:string,p?:any)=>void;onOpenChat:(p:any)=>Promise<void>|void;onOpenCenter:(tab:string)=>void};
