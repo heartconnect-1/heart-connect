@@ -105,6 +105,9 @@ jobs:
             -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' \
             https://royal-heart.com/admin/login)"
           echo "admin/login => $LOGIN_STATUS"
+          echo "--- admin/login response headers ---"
+          curl -sS --max-time 30 -D - -o /dev/null "https://royal-heart.com/admin/login" | sed -n '1,30p'
+          echo "--- end headers ---"
           test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
           grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v54-home-route-links' /tmp/hc-login-headers.txt
