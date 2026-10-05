@@ -48,7 +48,7 @@ Human/environment-specific gates remain pending until genuinely verified, includ
 - The security source branch has not been modified.
 - The original Admin source branch has not been modified.
 - Supabase leaked-password protection remains a production-hardening item.
-- `heart_connect_role_for_email` remains available until live legacy/AppDeploy CMS compatibility is confirmed.
+- `heart_connect_role_for_email` remains available until remaining legacy CMS compatibility is confirmed.
 - External Facebook, TikTok, Google Business, email, and push adapters remain disabled unless real provider integration is configured and tested.
 
 ## Next gate
