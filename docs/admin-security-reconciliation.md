@@ -33,7 +33,7 @@ The admin branch intentionally points `main` at the latest `worker-admin-v*.js` 
 
 ### 3. Legacy `backend/admin-dashboard.ts`
 
-The security branch currently contains an AppDeploy-backed admin route set. The Cloudflare-native Admin Control Plane overlaps several `/api/admin/*` routes. The native admin implementation is intended to become canonical only after its Supabase migrations and Cloudflare secrets are ready. Until then, unmatched native admin routes must fall through to the existing secured worker/backend. The current admin wrappers preserve that fallback behavior.
+The security branch currently contains a legacy admin route set. The Cloudflare-native Admin Control Plane overlaps several `/api/admin/*` routes. The native admin implementation is intended to become canonical only after its Supabase migrations and Cloudflare secrets are ready. Until then, unmatched native admin routes must fall through to the existing secured worker/backend. The current admin wrappers preserve that fallback behavior.
 
 ### 4. Shared Supabase
 

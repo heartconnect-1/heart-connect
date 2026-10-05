@@ -36,7 +36,7 @@ Do not merge this candidate into `main` until all of the following have evidence
 5. Admin migrations are reviewed and applied only after schema compatibility is confirmed.
 6. Required Cloudflare secrets are configured outside Git.
 7. Supabase leaked-password protection is enabled as a production hardening step.
-8. The legacy `heart_connect_role_for_email` RPC is revoked only after confirming the live legacy/AppDeploy CMS no longer depends on it.
+8. The legacy `heart_connect_role_for_email` RPC is revoked only after confirming the remaining legacy CMS no longer depends on it.
 9. Owner/super-admin explicitly approves the final production merge.
 
 No item in this document itself authorizes production deployment.

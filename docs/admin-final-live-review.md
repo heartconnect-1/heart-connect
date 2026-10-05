@@ -61,7 +61,7 @@ The final v9 polish candidate passed GitHub integration validation and Cloudflar
 ## Remaining security items outside the Admin polish branch
 
 1. Supabase leaked-password protection is still disabled. Enable it in Supabase Auth before final public launch if the project plan supports the feature.
-2. The legacy `public.heart_connect_role_for_email(text)` SECURITY DEFINER function is still executable by `anon` and `authenticated`. The native Cloudflare Admin does not depend on it. Revoke legacy execution only after confirming the remaining legacy/AppDeploy CMS path no longer needs that bridge.
+2. The legacy `public.heart_connect_role_for_email(text)` SECURITY DEFINER function is still executable by `anon` and `authenticated`. The native Cloudflare Admin does not depend on it. Revoke legacy execution only after confirming the remaining legacy CMS path no longer needs that bridge.
 3. External social publishing adapters are optional and not connected; the Admin correctly reports readiness instead of simulating publication.
 4. Workers AI is optional; only enable/mark it ready after the real Cloudflare AI binding is verified in the final runtime.
 

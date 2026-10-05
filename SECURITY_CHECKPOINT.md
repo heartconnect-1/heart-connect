@@ -30,5 +30,5 @@ This checkpoint is intentionally isolated from `main` and from `admin-dashboard-
 These are deliberately not blockers for creating the reconciliation branch, but must be resolved before final production cutover:
 
 1. Supabase leaked-password protection is an account-level Auth setting and remains disabled; enable it before production cutover.
-2. `public.heart_connect_role_for_email(text)` remains executable for legacy live AppDeploy CMS compatibility. The recovered security-branch CMS no longer depends on it. Revoke its public/authenticated execute permission only after reconciliation confirms no live caller remains.
+2. `public.heart_connect_role_for_email(text)` remains executable for legacy CMS compatibility. The recovered security-branch CMS no longer depends on it. Revoke its public/authenticated execute permission only after reconciliation confirms no live caller remains.
 3. Production `royal-heart.com` remains on the existing deployment until the reconciliation branch passes integration/runtime tests.
