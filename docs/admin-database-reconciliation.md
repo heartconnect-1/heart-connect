@@ -53,7 +53,7 @@ No native `payment_transactions` or `hc_payment_transactions` table was detected
 
 ## Legacy role RPC
 
-`public.heart_connect_role_for_email(text)` still exists and has executable grants. No PostgreSQL dependency was detected, and repository search did not identify a current source reference, but this is not sufficient evidence that the live legacy/AppDeploy CMS no longer calls it. It must remain in place until live compatibility is confirmed after the combined preview/reconciliation process.
+`public.heart_connect_role_for_email(text)` still exists and has executable grants. No PostgreSQL dependency was detected, and repository search did not identify a current source reference, but this is not sufficient evidence that the live legacy CMS no longer calls it. It must remain in place until live compatibility is confirmed after the combined preview/reconciliation process.
 
 ## Remaining environment prerequisites
 
