@@ -112,7 +112,8 @@ jobs:
           done
           test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
-          grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v54-home-route-links' /tmp/hc-login-headers.txt
+          grep -qi '^x-heart-connect-edge: cloudflare-native-router-v1' /tmp/hc-login-headers.txt
+          grep -qi '^x-heart-connect-admin-login: hc-admin-native-login-v2' /tmp/hc-login-headers.txt
 
           ADMIN_STATUS="$(curl -sS --max-time 30 \
             -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' \
