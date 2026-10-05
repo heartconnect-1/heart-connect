@@ -104,10 +104,15 @@ function createRealtimeConnection():RealtimeConnection{
       }else{
         return;
       }
-      channel.subscribe((status:any,error:any)=>{
-        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')errorHandler(error||new Error(status));
+      await new Promise<void>((resolve,reject)=>{
+        let settled=false;
+        const finish=(ok:boolean,error?:any)=>{if(settled)return;settled=true;if(ok){channels.set(key,channel);resolve()}else{errorHandler(error||new Error('Realtime subscription failed.'));try{supabase.removeChannel(channel)}catch{};reject(error||new Error('Realtime subscription failed.'))}};
+        channel.subscribe((status:any,error:any)=>{
+          if(status==='SUBSCRIBED')finish(true);
+          else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')finish(false,error||new Error(status));
+        });
+        setTimeout(()=>finish(false,new Error('Realtime subscription timed out.')),10000);
       });
-      channels.set(key,channel);
     },
     async unsubscribe(type,id){
       const key=type+':'+id,channel=channels.get(key);
