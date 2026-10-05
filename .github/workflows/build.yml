@@ -180,7 +180,7 @@ jobs:
           STATUS="$(curl -sS --retry 5 --retry-delay 2 --max-time 30 -D /tmp/hc-home-headers.txt -o /tmp/hc-home.html -w '%{http_code}' https://royal-heart.com/)"
           echo "/ => $STATUS"
           test "$STATUS" = "200"
-          grep -qi '^x-heart-connect-home: hc-main-home-v1' /tmp/hc-home-headers.txt
+          grep -qi '^x-heart-connect-edge: cloudflare-native-router-v1' /tmp/hc-home-headers.txt
           grep -Fq 'Profiles with personality.' /tmp/hc-home.html
           grep -Fq 'Open member app' /tmp/hc-home.html
           API_STATUS="$(curl -sS --retry 3 --max-time 30 -o /tmp/hc-home-data.json -w '%{http_code}' https://royal-heart.com/api/public/homepage)"
