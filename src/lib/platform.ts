@@ -58,6 +58,14 @@ export const api:ApiClient={
 };
 
 export const auth={
+  async getSession(){
+    const result=await Promise.race([
+      supabase.auth.getSession(),
+      new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Authentication session check timed out.')),10000))
+    ]);
+    if(result.error)throw result.error;
+    return result.data.session;
+  },
   async getUser(){
     const {data:{user}}=await supabase.auth.getUser();
     return user;
