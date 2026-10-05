@@ -1,4 +1,5 @@
 name: Build Verification
+# Temporary routing diagnosis; remove after cutover verification.
 
 on:
   push:
