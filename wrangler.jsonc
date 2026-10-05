@@ -1,10 +1,36 @@
 {
   "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
   "name": "heart-connect-edge-router",
-  "main": "cloudflare/worker-v12.js",
-  "compatibility_date": "2026-09-10",
+  "main": "cloudflare/worker-native-v1.js",
+  "compatibility_date": "2026-10-03",
   "workers_dev": true,
   "preview_urls": true,
+  "keep_vars": true,
+  "cache": {
+    "enabled": false
+  },
+  "routes": [
+    {
+      "pattern": "royal-heart.com",
+      "zone_name": "royal-heart.com"
+    },
+    {
+      "pattern": "royal-heart.com/*",
+      "zone_name": "royal-heart.com"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/admin*", "/api/*"]
+  },
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
   "rules": [
     {
       "type": "Text",
@@ -13,7 +39,6 @@
     }
   ],
   "vars": {
-    "APPDEPLOY_ORIGIN": "https://heart-connect-n8dpuu.v2.appdeploy.ai",
     "BOOKING_ADMIN_EMAIL": "admin@royal-heart.com",
     "SUPABASE_URL": "https://zzhzkikezjtbntaqiurk.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_HB0Irz6bxug1hHs518oPZQ_LC83i4qT"
