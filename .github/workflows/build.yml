@@ -101,13 +101,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          LOGIN_STATUS="$(curl -sS --retry 5 --retry-delay 3 --max-time 30 \
-            -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' \
-            https://royal-heart.com/admin/login)"
-          echo "admin/login => $LOGIN_STATUS"
-          echo "--- admin/login response headers ---"
-          curl -sS --max-time 30 -D - -o /dev/null "https://royal-heart.com/admin/login" | sed -n '1,30p'
-          echo "--- end headers ---"
+          LOGIN_STATUS=""
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            LOGIN_STATUS="$(curl -sS --max-time 30 \
+              -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' \
+              https://royal-heart.com/admin/login)"
+            echo "admin/login attempt $attempt => $LOGIN_STATUS"
+            if [ "$LOGIN_STATUS" = "200" ]; then break; fi
+            sleep 2
+          done
           test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
           grep -qi '^x-heart-connect-admin-router: cloudflare-admin-router-v54-home-route-links' /tmp/hc-login-headers.txt
