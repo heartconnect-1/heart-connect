@@ -20,12 +20,6 @@ export default function App(){const [securityOpen,setSecurityOpen]=useState(fals
     }
   };
   const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>applySession(session));
-  void auth.getSession().then(applySession).catch(()=>{
-    if(!alive)return;
-    setSigned(false);setAuthChecked(true);setNotice('Could not restore your session. Please sign in again.');
-    const path=window.location.pathname.replace(/\/+$/,'')||'/';
-    if(path==='/app')window.location.replace('/login?next=%2Fapp');
-  });
   return()=>{alive=false;subscription.unsubscribe()};
 },[]);
 useEffect(()=>{
