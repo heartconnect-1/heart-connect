@@ -63,3 +63,5 @@ if(p==='/api/stage7/admin/cases'&&r.method==='GET'){if(!(await staff(e,s,['moder
 return null}
 export // Stage 7 native referral integrity hardening is enforced server-side.
 async function handleNativeStage7(request,env){try{return await handle(request,env)}catch(e){return out({error:'Native Stage 7 error.'},500)}}
+
+// protected CI verification
