@@ -29,8 +29,21 @@ supabase.auth.onAuthStateChange((_event, session)=>{
   authInitialized=true;
 });
 
+async function currentSession(){
+  const now=Math.floor(Date.now()/1000);
+  if(authInitialized&&cachedSession?.access_token&&Number(cachedSession.expires_at||0)>now+60)return cachedSession;
+  const result=await Promise.race([
+    supabase.auth.getSession(),
+    new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Authentication session check timed out.')),10000))
+  ]);
+  if(result.error)throw result.error;
+  cachedSession=result.data.session;
+  authInitialized=true;
+  return result.data.session;
+}
+
 async function request<T>(path:string,init:RequestInit={}):Promise<ApiResponse<T>>{
-  const session=authInitialized?cachedSession:(await supabase.auth.getSession()).data.session;
+  const session=await currentSession();
   const headers=new Headers(init.headers||{});
   headers.set('accept','application/json');
   headers.set('content-type','application/json');
@@ -66,7 +79,8 @@ export const api:ApiClient={
 
 export const auth={
   async getSession(){
-    if(authInitialized)return cachedSession;
+    const now=Math.floor(Date.now()/1000);
+    if(authInitialized&&cachedSession?.access_token&&Number(cachedSession.expires_at||0)>now+60)return cachedSession;
     const result=await Promise.race([
       supabase.auth.getSession(),
       new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Authentication session check timed out.')),10000))
