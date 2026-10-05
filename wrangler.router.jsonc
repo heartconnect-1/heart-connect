@@ -8,6 +8,10 @@
   "keep_vars": true,
   "routes": [
     {
+      "pattern": "royal-heart.com/",
+      "zone_name": "royal-heart.com"
+    },
+    {
       "pattern": "royal-heart.com/*",
       "zone_name": "royal-heart.com"
     }
