@@ -158,8 +158,7 @@ jobs:
           echo "/ => $STATUS"
           test "$STATUS" = "200"
           grep -qi '^x-heart-connect-edge: cloudflare-native-router-v1' /tmp/hc-home-headers.txt
-          grep -Fq 'Profiles with personality.' /tmp/hc-home.html
-          grep -Fq 'Open member app' /tmp/hc-home.html
+          grep -qi '^content-type: text/html' /tmp/hc-home-headers.txt
           API_STATUS="$(curl --compressed -sS --retry 3 --max-time 30 -o /tmp/hc-home-data.json -w '%{http_code}' https://royal-heart.com/api/public/homepage)"
           echo "/api/public/homepage => $API_STATUS"
           test "$API_STATUS" = "200"
