@@ -70,7 +70,7 @@ Viewport: desktop (1280x800)
 Covers: POST /api/auth/security/email-code/request, POST /api/auth/security/email-code/verify, Resend delivery, code hashing, expiry, attempt limits, profile verification signal
 Description: Verifies Heart Connect can reconfirm access to the signed-in provider email without storing the plain verification code or falsely accepting expired/incorrect codes.
 Setup:
-1. Actor A is signed in through the primary AppDeploy identity provider and has an email address; RESEND_API_KEY is configured.
+1. Actor A is signed in through the primary identity provider and has an email address; RESEND_API_KEY is configured.
 Steps:
 1. Open Account Security and request an email verification code; verify the UI displays only a masked email and a 10-minute validity message.
 2. Enter an incorrect six-digit code repeatedly and verify attempts are rejected and bounded.
