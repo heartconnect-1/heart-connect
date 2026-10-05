@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Set up Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@49933cba5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
       - name: Install dependencies
@@ -54,17 +54,16 @@ jobs:
           node --check cloudflare/admin-auth-v2.js
           node --check cloudflare/admin-api-v54.js
           node --check cloudflare/admin-ui-v50.js
-          node --check cloudflare/worker-admin-v7.js
+          node --check cloudflare/worker-native-v1.js
           grep -Fq "SameSite=Strict" cloudflare/admin-auth-v2.js
           grep -Fq "HttpOnly" cloudflare/admin-auth-v2.js
           grep -Fq "browserSessionOnly:true" cloudflare/admin-auth-v2.js
           grep -Fq "Path=/; Secure; HttpOnly; SameSite=Strict; Priority=High" cloudflare/admin-auth-v2.js
-          grep -Fq "validateAdminSession" cloudflare/worker-admin-v7.js
-          grep -Fq "cloudflare-admin-router-v54-home-route-links" cloudflare/worker-admin-v7.js
-          grep -Fq "admin-api-v54.js" cloudflare/worker-admin-v7.js
+          grep -Fq "validateAdminSession" cloudflare/admin-auth-v2.js
+          grep -Fq "admin-api-v54.js" cloudflare/worker-native-v1.js
           node --check cloudflare/homepage-public-v1.js
           node --check cloudflare/admin-ui-v54.js
-          grep -Fq "handleHomepage" cloudflare/worker-admin-v7.js
+          grep -Fq "handleHomepage" cloudflare/worker-native-v1.js
           grep -Fq "/api/admin/homepage" cloudflare/admin-api-v52.js
           grep -Fq "This editor controls the main marketing homepage (/). It does not edit the signed-in member home (/app)." cloudflare/admin-api-v52.js
           grep -Fq "hc53-clickable" cloudflare/admin-ui-v53.js
@@ -101,12 +100,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           LOGIN_STATUS=""
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            LOGIN_STATUS="$(curl -sS --max-time 30 \
-              -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' \
-              https://royal-heart.com/admin/login)"
+            LOGIN_STATUS="$(curl -sS --max-time 30 -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' https://royal-heart.com/admin/login)"
             echo "admin/login attempt $attempt => $LOGIN_STATUS"
             if [ "$LOGIN_STATUS" = "200" ]; then break; fi
             sleep 2
@@ -115,29 +111,19 @@ jobs:
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
           grep -qi '^x-heart-connect-edge: cloudflare-native-router-v1' /tmp/hc-login-headers.txt
           grep -qi '^x-heart-connect-admin-login: hc-admin-native-login-v2' /tmp/hc-login-headers.txt
-
-          ADMIN_STATUS="$(curl -sS --max-time 30 \
-            -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' \
-            https://royal-heart.com/admin)"
+          ADMIN_STATUS="$(curl -sS --max-time 30 -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' https://royal-heart.com/admin)"
           echo "admin => $ADMIN_STATUS"
           test "$ADMIN_STATUS" = "302"
           grep -qi '^location:.*\/admin\/login' /tmp/hc-admin-headers.txt
-
-          SESSION_STATUS="$(curl -sS --max-time 30 \
-            -o /dev/null -w '%{http_code}' \
-            https://royal-heart.com/api/_cf/auth/session)"
+          SESSION_STATUS="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' https://royal-heart.com/api/_cf/auth/session)"
           echo "auth/session => $SESSION_STATUS"
           test "$SESSION_STATUS" = "401"
-
-          CAP_STATUS="$(curl -sS --max-time 30 \
-            -o /dev/null -w '%{http_code}' \
-            https://royal-heart.com/api/admin/capabilities)"
+          CAP_STATUS="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' https://royal-heart.com/api/admin/capabilities)"
           echo "admin/capabilities => $CAP_STATUS"
           case "$CAP_STATUS" in
             401|403) ;;
             *) echo "Expected unauthenticated Admin API denial, got $CAP_STATUS"; exit 1 ;;
           esac
-
       - name: Smoke test production member routes
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
@@ -149,7 +135,6 @@ jobs:
             test "$STATUS" = "200"
             grep -qi '<div id="root"' /tmp/hc-member-route.html
           done
-
       - name: Smoke test production main homepage
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
