@@ -6,6 +6,9 @@
   "workers_dev": true,
   "preview_urls": true,
   "keep_vars": true,
+  "cache": {
+    "enabled": false
+  },
   "routes": [
     {
       "pattern": "royal-heart.com",
