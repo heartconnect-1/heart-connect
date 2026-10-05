@@ -1,5 +1,4 @@
 name: Build Verification
-# Temporary routing diagnosis; remove after cutover verification.
 
 on:
   push:
@@ -75,6 +74,7 @@ jobs:
           grep -Fq "Member Home" cloudflare/admin-ui-v54.js
           grep -Fq "data-hc54-home=\"/\"" cloudflare/admin-ui-v54.js
           grep -Fq "data-hc54-home=\"/app\"" cloudflare/admin-ui-v54.js
+          grep -Fq '"run_worker_first": ["/admin*","/api/*"]' wrangler.router.jsonc
 
       - name: Validate Cloudflare native Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
@@ -96,23 +96,6 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$HEART_CONNECT_OWNER_EMAILS"
           printf '%s' "$HEART_CONNECT_OWNER_EMAILS" | npx wrangler secret put HEART_CONNECT_OWNER_EMAILS --config wrangler.router.jsonc
-      - name: Diagnose active Cloudflare routing
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          ZONE_JSON="$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones?name=royal-heart.com")"
-          ZONE_ID="$(printf '%s' "$ZONE_JSON" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).result?.[0]?.id||""))')"
-          test -n "$ZONE_ID"
-          echo '--- active Worker routes ---'
-          curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/workers/routes" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s); for(const x of j.result||[]) console.log(JSON.stringify({id:x.id,pattern:x.pattern,script:x.script||null}));})'
-          echo '--- Pages projects ---'
-          curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s); for(const x of j.result||[]) console.log(JSON.stringify({name:x.name,domains:x.domains||[],subdomain:x.subdomain||null}));})'
-          echo '--- live response headers ---'
-          curl -sS -D - -o /dev/null --max-time 30 https://royal-heart.com/admin/login | grep -Ei '^(HTTP/|location:|cache-control:|x-heart-connect-|server:|cf-|content-type:)' || true
       - name: Smoke test production admin security
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
