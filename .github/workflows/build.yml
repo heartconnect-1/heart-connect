@@ -1,4 +1,5 @@
 name: Build Verification
+# Production deployment runs automatically on every push to main.
 
 on:
   push:
