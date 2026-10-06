@@ -64,10 +64,17 @@ jobs:
           PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
         run: |
           set -euo pipefail
-          STATUS="$(curl --compressed -sS --retry 5 --retry-delay 2 --max-time 30 -o /tmp/hc-preview.html -w '%{http_code}' "$PREVIEW_URL/")"
-          echo "preview / => $STATUS"
-          test "$STATUS" = "200"
-          grep -qi '<div id="root"' /tmp/hc-preview.html
+          STATUS="000"
+          for attempt in $(seq 1 12); do
+            STATUS="$(curl --compressed -sS --retry 2 --retry-delay 2 --max-time 20 -o /tmp/hc-preview.html -w '%{http_code}' "$PREVIEW_URL/" || true)"
+            echo "preview / attempt $attempt => $STATUS"
+            if [ "$STATUS" = "200" ] && grep -qi '<div id="root"' /tmp/hc-preview.html; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Preview did not become ready after propagation wait: HTTP $STATUS"
+          exit 1
 
       - name: Publish preview URL
         env:
