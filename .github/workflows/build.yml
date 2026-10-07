@@ -76,6 +76,8 @@ jobs:
           grep -Fq "data-hc54-home=\"/\"" cloudflare/admin-ui-v54.js
           grep -Fq "data-hc54-home=\"/app\"" cloudflare/admin-ui-v54.js
           grep -Fq '"run_worker_first": ["/admin*","/api/*"]' wrangler.router.jsonc
+          grep -Fq "request.headers.get('authorization')" cloudflare/native-api-v1.js
+          grep -Fq "const hasBearer=bearer.toLowerCase().startsWith('bearer ')" cloudflare/native-api-v1.js
 
       - name: Validate Cloudflare native Worker
         run: npx wrangler deploy --dry-run --config wrangler.router.jsonc
