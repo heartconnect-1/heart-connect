@@ -1,6 +1,7 @@
 name: Build Verification
 # Production deployment runs automatically on every push to main.
 
+# Production deployment is push-gated; this comment intentionally changes no runtime behavior.
 on:
   push:
     branches: [main, develop, security-stabilization-2026-09-10]
