@@ -20,7 +20,7 @@ type RealtimeConnection={
   unsubscribe(type:string,id:string):Promise<void>;
 };
 
-let activeConnection:RealtimeConnection|null=null;
+let activeConnection:RealtimeConnection|null=null;\nlet refreshPromise:Promise<any>|null=null;\nasync function refreshSessionOnce(){if(refreshPromise)return refreshPromise;refreshPromise=supabase.auth.refreshSession().finally(()=>{refreshPromise=null});return refreshPromise}
 
 async function request<T>(path:string,init:RequestInit={},retried=false):Promise<ApiResponse<T>>{
   const {data:{session}}=await supabase.auth.getSession();
@@ -33,7 +33,7 @@ async function request<T>(path:string,init:RequestInit={},retried=false):Promise
   let data:any=null;
   try{data=text?JSON.parse(text):null}catch{data=text}
   if(response.status===401&&!retried){
-    const refreshed=await supabase.auth.refreshSession();
+    const refreshed=await refreshSessionOnce();
     if(refreshed.data.session?.access_token)return request(path,init,true);
   }
   if(!response.ok){
