@@ -22,7 +22,7 @@ type RealtimeConnection={
 
 let activeConnection:RealtimeConnection|null=null;
 
-async function request<T>(path:string,init:RequestInit={}):Promise<ApiResponse<T>>{
+async function request<T>(path:string,init:RequestInit={},retried=false):Promise<ApiResponse<T>>{
   const {data:{session}}=await supabase.auth.getSession();
   const headers=new Headers(init.headers||{});
   headers.set('accept','application/json');
@@ -32,6 +32,10 @@ async function request<T>(path:string,init:RequestInit={}):Promise<ApiResponse<T
   const text=await response.text();
   let data:any=null;
   try{data=text?JSON.parse(text):null}catch{data=text}
+  if(response.status===401&&!retried){
+    const refreshed=await supabase.auth.refreshSession();
+    if(refreshed.data.session?.access_token)return request(path,init,true);
+  }
   if(!response.ok){
     const error=Object.assign(new Error(String(data?.error||data?.message||'Request failed.')),{status:response.status,data});
     throw error;
