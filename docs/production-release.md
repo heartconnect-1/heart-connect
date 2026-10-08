@@ -14,17 +14,9 @@ There is no required staging website, staging database, localhost server, or pre
 2. Pull-request CI must pass.
 3. The change is merged into `main` through the repository's protected-main rules.
 4. A push to `main` starts the verification workflow.
-5. The `production` GitHub Environment must be configured by the Project Owner with:
-   - required reviewer(s);
-   - Prevent self-review enabled;
-   - deployment branch restriction allowing only `main`;
-   - administrator bypass disabled;
-   - environment secrets:
-     - `PRODUCTION_CLOUDFLARE_API_TOKEN`
-     - `PRODUCTION_CLOUDFLARE_ACCOUNT_ID`
-     - `PRODUCTION_HEART_CONNECT_OWNER_EMAILS`
-6. The production deployment job remains pending until the required reviewer approves it.
-7. Only after approval does the job receive the environment secrets and execute the Cloudflare deployment.
+5. The Project Owner explicitly authorizes the production release by manually dispatching the workflow from `main` with the exact approved commit SHA.
+6. The workflow verifies that the supplied SHA is a commit reachable from `main`, then builds and deploys that exact SHA.
+7. Production credentials remain repository secrets and are referenced only by the production deployment job.
 
 Do not place the production deployment credentials in workflow files.
 
@@ -32,17 +24,24 @@ Do not place the production deployment credentials in workflow files.
 
 The production deployment job:
 
-- runs only for a push to `main`;
+- runs only for a manual `workflow_dispatch` from `main`;
 - depends on the complete verification job;
-- checks out the exact `GITHUB_SHA`;
-- verifies that the checked-out commit equals `GITHUB_SHA`;
+- requires a full commit SHA supplied by the release operator;
+- verifies that the supplied SHA is reachable from `main`;
+- checks out and builds that exact release SHA;
 - records the Git SHA and workflow run in the Actions job summary;
 - builds from that exact commit;
 - deploys using `wrangler.router.jsonc`;
 - configures the existing owner-access Worker secret;
 - serializes production deployments through the `heart-connect-production` concurrency group.
 
-Pull-request runs never enter the production deployment job.
+Pull-request and automatic push runs never enter the production deployment job.
+
+## Manual release authorization
+
+The simplified model deliberately does not use a GitHub `production` Environment. A release operator with GitHub write access must manually dispatch this workflow from `main` and provide the approved commit SHA. GitHub documents that manual workflow dispatch requires write access; by default, users with write access can trigger workflows. Therefore repository Actions/workflow-execution policy should be used if the Project Owner needs to restrict which write-capable users may perform production releases.
+
+This is the principal security tradeoff versus a protected GitHub Environment: there is no required-reviewer gate or environment-level approval prompt in the workflow. The compensating controls are protected `main`, required CI checks, exact-SHA verification, least-privilege workflow permissions, repository-scoped production secrets, and explicit operator authorization.
 
 ## Live-domain smoke tests
 
@@ -74,7 +73,7 @@ Every production release records:
 - production target;
 - Cloudflare Worker configuration.
 
-The GitHub production environment also provides deployment history for jobs targeting `production`.
+The GitHub Actions run records the exact release SHA, workflow run ID, and production target in the job summary.
 
 ## Failed deployment handling
 
@@ -99,8 +98,7 @@ The rollback release must:
 
 - originate from `main`;
 - pass the verification job;
-- receive production approval;
-- use the protected production environment;
+- receive the Project Owner's manual release authorization;
 - be identified by its exact Git SHA;
 - pass live smoke tests after deployment.
 
@@ -140,6 +138,6 @@ Never include secrets, access tokens, service-role keys, or private member data 
 
 ## Release boundary
 
-No production deployment is permitted until the Project Owner has verified the GitHub `production` environment protection settings and approved the release.
+No production deployment is permitted unless the Project Owner explicitly authorizes the release by dispatching the production workflow from `main` with the approved release SHA.
 
-The workflow change in this repository intentionally does not configure those repository settings automatically.
+The workflow intentionally does not create or require a GitHub `production` Environment. This keeps the release path simple while retaining protected-main and CI controls.
