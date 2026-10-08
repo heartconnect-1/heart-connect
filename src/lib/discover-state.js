@@ -18,10 +18,12 @@ export function createDiscoverRequestGate() {
   return {
     beginRefresh() {
       generation += 1;
+      activePageGeneration = null;
       return generation;
     },
     invalidate() {
       generation += 1;
+      activePageGeneration = null;
       return generation;
     },
     beginPage() {

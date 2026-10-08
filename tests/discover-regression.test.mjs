@@ -132,3 +132,17 @@ test('a stale first-page refresh cannot overwrite a newer filter reset refresh',
   assert.deepEqual(profiles, [{ id: 'after-reset' }]);
   assert.equal(cursor, 50);
 });
+
+test('an obsolete page cannot release a newer generation Load More lock', () => {
+  const gate = createDiscoverRequestGate();
+  const oldPageToken = gate.beginPage();
+  const refreshToken = gate.beginRefresh();
+  assert.equal(gate.isCurrent(oldPageToken), false);
+  assert.equal(gate.isCurrent(refreshToken), true);
+  const currentPageToken = gate.beginPage();
+  assert.equal(currentPageToken, refreshToken);
+  gate.finishPage(oldPageToken);
+  assert.equal(gate.beginPage(), null, 'old request cleanup must not unlock the current page');
+  gate.finishPage(currentPageToken);
+  assert.equal(gate.beginPage(), refreshToken);
+});
