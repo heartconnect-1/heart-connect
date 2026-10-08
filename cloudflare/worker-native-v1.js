@@ -75,6 +75,8 @@ export default {
     if(stage8)return stamp(stage8);
     const legacy=legacyRequest(request);
     if(legacy){
+      const mediaLegacy=await handleNativeProfileMedia(legacy,env);
+      if(mediaLegacy)return stamp(mediaLegacy);
       const safety=await handleNativeAccountSafety(legacy,env);
       if(safety)return stamp(safety);
       const native=await handleNativeApi(legacy,env);
