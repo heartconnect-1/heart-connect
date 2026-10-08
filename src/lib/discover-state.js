@@ -10,3 +10,30 @@ export function mergeDiscoverProfiles(existing = [], incoming = []) {
   }
   return merged;
 }
+
+/** Request-generation and single-flight gate for the existing Discover endpoint. */
+export function createDiscoverRequestGate() {
+  let generation = 0;
+  let activePageGeneration = null;
+  return {
+    beginRefresh() {
+      generation += 1;
+      return generation;
+    },
+    invalidate() {
+      generation += 1;
+      return generation;
+    },
+    beginPage() {
+      if (activePageGeneration !== null) return null;
+      activePageGeneration = generation;
+      return generation;
+    },
+    isCurrent(token) {
+      return token === generation;
+    },
+    finishPage(token) {
+      if (activePageGeneration === token) activePageGeneration = null;
+    },
+  };
+}
