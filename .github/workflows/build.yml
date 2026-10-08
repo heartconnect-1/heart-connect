@@ -107,7 +107,7 @@ jobs:
         run: |
           set -euo pipefail
           test "${GITHUB_REF}" = "refs/heads/main"
-          DEPLOY_SHA="\$(git rev-parse HEAD)"
+          DEPLOY_SHA="$(git rev-parse HEAD)"
           test "${DEPLOY_SHA}" = "${GITHUB_SHA}"
           {
             echo "## Heart Connect production release"
@@ -180,27 +180,27 @@ jobs:
           set -euo pipefail
           LOGIN_STATUS=""
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            LOGIN_STATUS="\$(curl -sS --max-time 30 -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' https://royal-heart.com/admin/login)"
-            echo "admin/login attempt \$attempt => \$LOGIN_STATUS"
-            if [ "\$LOGIN_STATUS" = "200" ]; then break; fi
+            LOGIN_STATUS="$(curl -sS --max-time 30 -D /tmp/hc-login-headers.txt -o /dev/null -w '%{http_code}' https://royal-heart.com/admin/login)"
+            echo "admin/login attempt $attempt => $LOGIN_STATUS"
+            if [ "$LOGIN_STATUS" = "200" ]; then break; fi
             sleep 2
           done
-          test "\$LOGIN_STATUS" = "200"
+          test "$LOGIN_STATUS" = "200"
           grep -qi '^cache-control:.*no-store' /tmp/hc-login-headers.txt
           grep -qi '^x-heart-connect-edge: cloudflare-native-router-v1' /tmp/hc-login-headers.txt
           grep -qi '^x-heart-connect-admin-login: hc-admin-native-login-v2' /tmp/hc-login-headers.txt
-          ADMIN_STATUS="\$(curl -sS --max-time 30 -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' https://royal-heart.com/admin)"
-          echo "admin => \$ADMIN_STATUS"
-          test "\$ADMIN_STATUS" = "302"
+          ADMIN_STATUS="$(curl -sS --max-time 30 -D /tmp/hc-admin-headers.txt -o /dev/null -w '%{http_code}' https://royal-heart.com/admin)"
+          echo "admin => $ADMIN_STATUS"
+          test "$ADMIN_STATUS" = "302"
           grep -qi '^location:.*\/admin\/login' /tmp/hc-admin-headers.txt
-          SESSION_STATUS="\$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' https://royal-heart.com/api/_cf/auth/session)"
-          echo "auth/session => \$SESSION_STATUS"
-          test "\$SESSION_STATUS" = "401"
-          CAP_STATUS="\$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' https://royal-heart.com/api/admin/capabilities)"
-          echo "admin/capabilities => \$CAP_STATUS"
-          case "\$CAP_STATUS" in
+          SESSION_STATUS="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' https://royal-heart.com/api/_cf/auth/session)"
+          echo "auth/session => $SESSION_STATUS"
+          test "$SESSION_STATUS" = "401"
+          CAP_STATUS="$(curl -sS --max-time 30 -o /dev/null -w '%{http_code}' https://royal-heart.com/api/admin/capabilities)"
+          echo "admin/capabilities => $CAP_STATUS"
+          case "$CAP_STATUS" in
             401|403) ;;
-            *) echo "Expected unauthenticated Admin API denial, got \$CAP_STATUS"; exit 1 ;;
+            *) echo "Expected unauthenticated Admin API denial, got $CAP_STATUS"; exit 1 ;;
           esac
 
       - name: Smoke test production member routes
@@ -208,9 +208,9 @@ jobs:
         run: |
           set -euo pipefail
           for path in /login /signup /app; do
-            STATUS="\$(curl -sS --retry 5 --retry-delay 2 --max-time 30 -o /tmp/hc-member-route.html -w '%{http_code}' "https://royal-heart.com\$path")"
-            echo "\$path => \$STATUS"
-            test "\$STATUS" = "200"
+            STATUS="$(curl -sS --retry 5 --retry-delay 2 --max-time 30 -o /tmp/hc-member-route.html -w '%{http_code}' "https://royal-heart.com$path")"
+            echo "$path => $STATUS"
+            test "$STATUS" = "200"
             grep -qi '<div id="root"' /tmp/hc-member-route.html
           done
 
@@ -218,10 +218,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          STATUS="\$(curl --compressed -sS --retry 5 --retry-delay 2 --max-time 30 -D /tmp/hc-home-headers.txt -o /tmp/hc-home.html -w '%{http_code}' https://royal-heart.com/)"
-          echo "/ => \$STATUS"
-          test "\$STATUS" = "200"
-          API_STATUS="\$(curl --compressed -sS --retry 3 --max-time 30 -o /tmp/hc-home-data.json -w '%{http_code}' https://royal-heart.com/api/public/homepage)"
-          echo "/api/public/homepage => \$API_STATUS"
-          test "\$API_STATUS" = "200"
+          STATUS="$(curl --compressed -sS --retry 5 --retry-delay 2 --max-time 30 -D /tmp/hc-home-headers.txt -o /tmp/hc-home.html -w '%{http_code}' https://royal-heart.com/)"
+          echo "/ => $STATUS"
+          test "$STATUS" = "200"
+          API_STATUS="$(curl --compressed -sS --retry 3 --max-time 30 -o /tmp/hc-home-data.json -w '%{http_code}' https://royal-heart.com/api/public/homepage)"
+          echo "/api/public/homepage => $API_STATUS"
+          test "$API_STATUS" = "200"
           grep -Fq '"profiles"' /tmp/hc-home-data.json
