@@ -22,10 +22,38 @@ type RealtimeConnection={
 
 let activeConnection:RealtimeConnection|null=null;
 let refreshPromise:Promise<any>|null=null;
-async function refreshSessionOnce(){if(refreshPromise)return refreshPromise;refreshPromise=supabase.auth.refreshSession().finally(()=>{refreshPromise=null});return refreshPromise}
+let cachedSession:any=null;
+let authInitialized=false;
+
+supabase.auth.onAuthStateChange((_event,session)=>{
+  cachedSession=session;
+  authInitialized=true;
+});
+
+async function currentSession(){
+  const now=Math.floor(Date.now()/1000);
+  if(authInitialized&&cachedSession?.access_token&&Number(cachedSession.expires_at||0)>now+60)return cachedSession;
+  const result=await Promise.race([
+    supabase.auth.getSession(),
+    new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Authentication session check timed out.')),10000))
+  ]);
+  if(result.error)throw result.error;
+  cachedSession=result.data.session;
+  authInitialized=true;
+  return result.data.session;
+}
+
+async function refreshSessionOnce(){
+  if(refreshPromise)return refreshPromise;
+  refreshPromise=supabase.auth.refreshSession().then(result=>{
+    if(result.data.session){cachedSession=result.data.session;authInitialized=true}
+    return result;
+  }).finally(()=>{refreshPromise=null});
+  return refreshPromise;
+}
 
 async function request<T>(path:string,init:RequestInit={},retried=false):Promise<ApiResponse<T>>{
-  const {data:{session}}=await supabase.auth.getSession();
+  const session=await currentSession();
   const headers=new Headers(init.headers||{});
   headers.set('accept','application/json');
   headers.set('content-type','application/json');
@@ -64,13 +92,13 @@ export const api:ApiClient={
 };
 
 export const auth={
-  async getSession(){
-    const result=await Promise.race([
-      supabase.auth.getSession(),
-      new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Authentication session check timed out.')),10000))
-    ]);
-    if(result.error)throw result.error;
-    return result.data.session;
+  async getSession(){return currentSession();},
+  async bootstrap(){
+    const session=await currentSession();
+    if(!session?.user)throw Object.assign(new Error('Authentication required.'),{status:401});
+    const me=await api.get('/api/me');
+    const compliance=await api.get('/api/compliance/state');
+    return {session,me:me.data,compliance:compliance.data};
   },
   async getUser(){
     const {data:{user}}=await supabase.auth.getUser();
@@ -82,6 +110,8 @@ export const auth={
   },
   async signOut(){
     const {error}=await supabase.auth.signOut({scope:'local'});
+    cachedSession=null;
+    authInitialized=true;
     if(error)throw error;
   }
 };
