@@ -145,6 +145,7 @@ revoke execute on function heart_private.discover_impl(integer, integer) from pu
 revoke execute on function heart_private.connect_impl(uuid, text) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_profile(uuid, uuid) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_media(uuid, uuid) from public, anon, authenticated;
+revoke execute on function heart_private.can_view_media_path(uuid, text) from public, anon, authenticated;
 revoke execute on function heart_private.compliance_ready(uuid) from public, anon, authenticated;
 revoke execute on function heart_private.user_restricted(uuid) from public, anon, authenticated;
 revoke execute on function public.hc_discover_v1(integer, integer) from public, anon;
