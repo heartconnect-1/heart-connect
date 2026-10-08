@@ -3,8 +3,6 @@
   "name": "heart-connect-edge-router",
   "main": "cloudflare/worker-native-v1.js",
   "compatibility_date": "2026-10-03",
-  "workers_dev": true,
-  "preview_urls": true,
   "keep_vars": true,
   "cache": {
     "enabled": false

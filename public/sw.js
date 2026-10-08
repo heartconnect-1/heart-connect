@@ -1,5 +1,5 @@
-const CACHE='heart-connect-shell-v10';
-const SHELL=['/','/manifest.webmanifest','/hc-icon.svg','/robots.txt','/sitemap.xml','/llms.txt'];
+const CACHE='heart-connect-shell-v11';
+const SHELL=['/','/manifest.webmanifest','/heartconnect-logo.svg','/robots.txt','/sitemap.xml','/llms.txt'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
