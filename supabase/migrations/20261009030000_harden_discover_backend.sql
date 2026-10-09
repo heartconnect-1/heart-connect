@@ -131,6 +131,56 @@ begin
 end;
 $function$;
 
+
+-- Preserve existing public RPC behavior when implementation execution is restricted.
+-- This helper also needs the canonical database action value for incognito visibility.
+create or replace function heart_private.can_view_profile(p_viewer uuid, p_target uuid)
+returns boolean language sql security definer set search_path = public, pg_temp
+as $function$
+  select p_viewer is not null
+    and p_target is not null
+    and p_viewer <> p_target
+    and heart_private.compliance_ready(p_viewer)
+    and heart_private.compliance_ready(p_target)
+    and not heart_private.user_restricted(p_viewer)
+    and not heart_private.user_restricted(p_target)
+    and exists (
+      select 1
+      from public.dating_profiles dp
+      left join public.privacy_preferences pp on pp.user_id = dp.user_id
+      where dp.user_id = p_target
+        and dp.is_discoverable = true
+        and coalesce(pp.discoverable, true) = true
+        and coalesce(pp.profile_visibility, 'standard') <> 'paused'
+        and not exists (
+          select 1 from public.blocks b
+          where (b.blocker_id = p_viewer and b.blocked_id = p_target)
+             or (b.blocker_id = p_target and b.blocked_id = p_viewer)
+        )
+        and (
+          coalesce(pp.profile_visibility, 'standard') <> 'incognito'
+          or exists (
+            select 1 from public.swipe_actions sa
+            where sa.actor_id = p_target
+              and sa.target_id = p_viewer
+              and sa.action in ('like','super_like')
+          )
+        )
+    );
+$function$;
+
+create or replace function public.hc_inbox_v1(p_limit integer default 50)
+returns jsonb language sql stable security definer set search_path = public, pg_temp
+as $function$ select heart_private.inbox_impl(p_limit) $function$;
+
+create or replace function public.hc_match_for_peer_v1(p_peer uuid)
+returns uuid language sql stable security definer set search_path = public, pg_temp
+as $function$ select heart_private.match_for_peer_impl(p_peer) $function$;
+
+create or replace function public.hc_privacy_update_v1(p_patch jsonb)
+returns jsonb language sql security definer set search_path = public, pg_temp
+as $function$ select heart_private.privacy_update_impl(coalesce(p_patch,'{}'::jsonb)) $function$;
+
 -- The public RPC wrappers are the only client entry points and use a fixed search_path.
 create or replace function public.hc_discover_v1(p_limit integer default 20, p_offset integer default 0)
 returns jsonb language sql stable security definer set search_path = public, pg_temp
@@ -143,6 +193,9 @@ as $function$ select heart_private.connect_impl(p_target,p_action) $function$;
 -- Remove inherited PUBLIC execution as well as explicit client grants.
 revoke execute on function heart_private.discover_impl(integer, integer) from public, anon, authenticated;
 revoke execute on function heart_private.connect_impl(uuid, text) from public, anon, authenticated;
+revoke execute on function heart_private.inbox_impl(integer) from public, anon, authenticated;
+revoke execute on function heart_private.match_for_peer_impl(uuid) from public, anon, authenticated;
+revoke execute on function heart_private.privacy_update_impl(jsonb) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_profile(uuid, uuid) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_media(uuid, uuid) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_media_path(uuid, text) from public, anon, authenticated;
@@ -150,5 +203,11 @@ revoke execute on function heart_private.compliance_ready(uuid) from public, ano
 revoke execute on function heart_private.user_restricted(uuid) from public, anon, authenticated;
 revoke execute on function public.hc_discover_v1(integer, integer) from public, anon;
 revoke execute on function public.hc_connect_v1(uuid, text) from public, anon;
+revoke execute on function public.hc_inbox_v1(integer) from public, anon;
+revoke execute on function public.hc_match_for_peer_v1(uuid) from public, anon;
+revoke execute on function public.hc_privacy_update_v1(jsonb) from public, anon;
 grant execute on function public.hc_discover_v1(integer, integer) to authenticated;
 grant execute on function public.hc_connect_v1(uuid, text) to authenticated;
+grant execute on function public.hc_inbox_v1(integer) to authenticated;
+grant execute on function public.hc_match_for_peer_v1(uuid) to authenticated;
+grant execute on function public.hc_privacy_update_v1(jsonb) to authenticated;
