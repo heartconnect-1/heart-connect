@@ -17,6 +17,10 @@
 ## Security assessment and prerequisite
 The proposed migration revokes client/PUBLIC EXECUTE on the reviewed private functions and makes only hc_discover_v1/hc_connect_v1 SECURITY DEFINER with fixed search_path and schema-qualified calls. The wrappers preserve authenticated execution. Do not apply until a complete call-graph confirms no other public invoker wrapper needs client EXECUTE on these helpers, and live PostgREST exposed schemas/effective production routing are verified. PUBLIC EXECUTE alone is not proof of reachability.
 
+## Storage-policy compatibility amendment
+
+The production Storage RLS policies call `heart_private.can_view_media_path(uuid,text)` and `heart_private.user_restricted(uuid)` directly as the authenticated role. Do not revoke authenticated EXECUTE on these two helpers unless the policies are first changed to use an appropriately secured policy-facing wrapper and that change is tested. The repair branch therefore revokes inherited PUBLIC and anon execution while explicitly preserving authenticated execution for these two functions. This prevents breaking the existing policies, but it does not eliminate direct authenticated helper calls if PostgREST exposes `heart_private`; verify exposed schemas and later consider policy-facing wrappers before removing those grants.
+
 ## Pre-apply checklist
 1. Confirm the effective production Worker SUPABASE_URL reference from Cloudflare deployment metadata. Repository default is not proof.
 2. Confirm PostgREST exposed schemas and effective grants for heart_private.
