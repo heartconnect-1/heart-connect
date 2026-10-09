@@ -35,6 +35,8 @@ jobs:
         run: npm run typecheck
       - name: Discover regression tests
         run: npm run test:discover
+      - name: Discover SQL regression tests
+        run: npm run test:discover-sql
       - name: Build
         run: npm run build
       - name: Validate professional member routing
