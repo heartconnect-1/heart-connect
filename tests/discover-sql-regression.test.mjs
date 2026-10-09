@@ -19,7 +19,7 @@ test('superlike input normalizes to existing constraint value', () => {
   assert.match(sql, /action in \('like','super_like','pass'\)/);
 });
 test('private privileged functions revoke inherited and explicit client execution', () => {
-  for (const sig of ['heart_private.discover_impl(integer, integer)','heart_private.connect_impl(uuid, text)','heart_private.inbox_impl(integer)','heart_private.match_for_peer_impl(uuid)','heart_private.privacy_update_impl(jsonb)','heart_private.can_view_profile(uuid, uuid)','heart_private.can_view_media(uuid, uuid)','heart_private.can_view_media_path(uuid, text)','heart_private.compliance_ready(uuid)','heart_private.user_restricted(uuid)']) {
+  for (const sig of ['heart_private.discover_impl(integer, integer)','heart_private.connect_impl(uuid, text)','heart_private.inbox_impl(integer)','heart_private.match_for_peer_impl(uuid)','heart_private.privacy_update_impl(jsonb)','heart_private.can_view_profile(uuid, uuid)','heart_private.can_view_media(uuid, uuid)','heart_private.compliance_ready(uuid)']) {
     assert.ok(sql.includes('revoke execute on function ' + sig + ' from public, anon, authenticated;'));
   }
   assert.match(sql, /security definer set search_path = public, pg_temp/i);
@@ -35,6 +35,16 @@ test('private privileged functions revoke inherited and explicit client executio
 test('no historical swipe rewrite or pass-undo feature is introduced', () => {
   assert.doesNotMatch(sql, /update public\.swipe_actions\s+set action/i);
   assert.match(sql, /unlike removes only likes\/superlikes/);
+});
+
+
+test('storage-policy helper grants preserve existing authenticated policy execution', () => {
+  assert.match(sql, /revoke execute on function heart_private\\.can_view_media_path\\(uuid, text\\) from public, anon;/i);
+  assert.match(sql, /grant execute on function heart_private\\.can_view_media_path\\(uuid, text\\) to authenticated;/i);
+  assert.match(sql, /revoke execute on function heart_private\\.user_restricted\\(uuid\\) from public, anon;/i);
+  assert.match(sql, /grant execute on function heart_private\\.user_restricted\\(uuid\\) to authenticated;/i);
+  assert.doesNotMatch(sql, /revoke execute on function heart_private\\.can_view_media_path\\(uuid, text\\) from public, anon, authenticated;/i);
+  assert.doesNotMatch(sql, /revoke execute on function heart_private\\.user_restricted\\(uuid\\) from public, anon, authenticated;/i);
 });
 
 test('incognito visibility uses the canonical super_like database action', () => {
