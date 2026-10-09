@@ -198,9 +198,11 @@ revoke execute on function heart_private.match_for_peer_impl(uuid) from public, 
 revoke execute on function heart_private.privacy_update_impl(jsonb) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_profile(uuid, uuid) from public, anon, authenticated;
 revoke execute on function heart_private.can_view_media(uuid, uuid) from public, anon, authenticated;
-revoke execute on function heart_private.can_view_media_path(uuid, text) from public, anon, authenticated;
+revoke execute on function heart_private.can_view_media_path(uuid, text) from public, anon;
+grant execute on function heart_private.can_view_media_path(uuid, text) to authenticated;
 revoke execute on function heart_private.compliance_ready(uuid) from public, anon, authenticated;
-revoke execute on function heart_private.user_restricted(uuid) from public, anon, authenticated;
+revoke execute on function heart_private.user_restricted(uuid) from public, anon;
+grant execute on function heart_private.user_restricted(uuid) to authenticated;
 revoke execute on function public.hc_discover_v1(integer, integer) from public, anon;
 revoke execute on function public.hc_connect_v1(uuid, text) from public, anon;
 revoke execute on function public.hc_inbox_v1(integer) from public, anon;
