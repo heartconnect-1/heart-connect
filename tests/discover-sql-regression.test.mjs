@@ -37,7 +37,7 @@ test('no historical swipe rewrite or pass-undo feature is introduced', () => {
   assert.match(sql, /unlike removes only likes\/superlikes/);
 });
 
-test('incognito visibility uses the canonical super_like database action', async () => {
+test('incognito visibility uses the canonical super_like database action', () => {
   const start = sql.indexOf('create or replace function heart_private.can_view_profile');
   const end = sql.indexOf('$function$;', start);
   assert.notEqual(start, -1, 'can_view_profile definition exists');
@@ -60,17 +60,13 @@ test('connect implementation authenticates caller and normalizes superlike befor
   assert.match(definition, /heart_private\.can_view_profile\(v_uid,p_target\)/);
 });
 
-test('privacy update wrapper preserves caller identity and fixed search path in definer context', () => {
+test('privacy update wrapper uses fixed-search-path SECURITY DEFINER and keeps helper private', () => {
   const start = sql.indexOf('create or replace function public.hc_privacy_update_v1');
   const end = sql.indexOf('$function$;', start);
   assert.notEqual(start, -1, 'privacy wrapper exists');
   const definition = sql.slice(start, end);
   assert.match(definition, /security definer set search_path = public, pg_temp/i);
   assert.match(definition, /heart_private\.privacy_update_impl\(coalesce\(p_patch,'\{\}'::jsonb\)\)/);
-  const implStart = sql.indexOf('create or replace function heart_private.privacy_update_impl');
-  const implEnd = sql.indexOf('$function$;', implStart);
-  const impl = sql.slice(implStart, implEnd);
-  assert.match(impl, /v_uid uuid := auth\.uid\(\)/);
-  assert.match(impl, /if v_uid is null then raise exception 'authentication_required'/);
-  assert.match(impl, /where user_id=v_uid/);
+  assert.match(sql, /revoke execute on function heart_private\.privacy_update_impl\(jsonb\) from public, anon, authenticated;/i);
+  assert.doesNotMatch(sql, /grant execute on function heart_private\.privacy_update_impl\(jsonb\) to authenticated/i);
 });
